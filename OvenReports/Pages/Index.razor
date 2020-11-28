@@ -1,0 +1,168 @@
+﻿@page "/"
+@* inject ReportingService ReportingService *@
+@* inject IJSRuntime JSRuntime; *@
+
+<h1>Отчет по плавкам</h1>
+
+<div class="alert alert-secondary mt-4" role="alert">
+    <EditForm Model="_meltsPeriod">
+        <div class="form-row">
+            <div class="form-group col-lg-2">
+                <label for="dataStart">Начало периода</label>
+                <InputDate id="dataStart" class="form-control" @bind-Value="@_meltsPeriod.PeriodStart"/>
+            </div>
+            <div class="form-group col-lg-2">
+                <label for="dataFinish">Конец периода</label>
+                <InputDate id="dataFinish" class="form-control" @bind-Value="@_meltsPeriod.PeriodFinish"/>
+            </div>
+            <div class="form-group col-lg-2" style="text-align: left; vertical-align: middle;">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showReport" type="button" class="btn btn-primary" @onclick="@GetMelts">Сформировать</button>
+            </div>
+            
+            <div class="form-group col-lg-2">
+                <label for="meltNumber">Номер плавки</label>
+                <InputText id="meltNumber" class="form-control" @bind-Value="@_meltsPeriod.MeltNumber"/>
+            </div>
+            <div class="form-group col-md-auto" style="text-align: center; vertical-align: middle;">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showReportByMelt" type="button" class="btn btn-primary" @onclick="@GetMelt">Сформировать</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+<div id="meltReport" style="display: @_showReport">
+    <table>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">№<br/>плавки</th>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">Профиль</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр<br/>профиля</th>
+                        <th scope="col" style="vertical-align: middle; width: 190px;">Дата</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Марка<br/>стали</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Сечение</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>заготовок</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Длина<br/>заготовки</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Стандарт</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Код<br />продукции</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Заказчик</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>бунтов</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Бунты</th>
+                        <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="height:630px; overflow:auto;">
+                    <table class="table table-hover">
+                        <tbody>
+                        @foreach (LandingData item in _meltsList)
+                        {
+                            <tr>
+                                <th scope="row" style="width: 90px;">@item.MeltNumber</th>
+                                <td scope="row" style="width: 90px;">@item.ProductProfile</td>
+                                <td style="width: 100px;">@item.Diameter</td>
+                                <td style="width: 190px;">
+                                    @item.FirstWeighting.ToString("dd-MM-yyyy HH:mm")
+                                    @item.LastWeighting.ToString("dd-MM-yyyy HH:mm")
+                                </td>
+                                <td style="width: 150px;">@item.SteelMark</td>
+                                <td style="width: 150px;">@item.IngotProfile</td>
+                                <td style="width: 100px;">@item.IngotsCount</td>
+                                <td style="width: 100px;">@item.IngotLength</td>
+                                <td style="width: 150px;">@item.Standart</td>
+                                <td style="width: 150px;">@item.ProductCode</td>
+                                <td style="width: 150px;">@item.Customer</td>
+                                <td style="width: 100px;">@item.Weighted</td>
+                                <td style="width: 100px;">@item.WeightReal</td>
+                                <td style="width: 100px;">
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.MeltNumber, item.Diameter); })">&#10050;</button>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<div class="modal fade bd-example-modal-lg" tabindex="-1" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Список бунтов плавки №@_meltInfo.MeltNumber, диаметр @_meltInfo.Diameter </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="viewMelt">
+                    @* <div class="h3">Плавка №@_currentMelt[0].MeltNumber диаметр @_currentMelt[0].Diameter от @_currentMelt[0].DateReg</div> *@
+                    <table>
+                        <tr>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">Плавка<br/>№</th>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">Профиль</th>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр<br/>профиля</th>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">№<br/>бунта</th>
+                                        <th scope="col" style="vertical-align: middle; width: 155px;">Вес<br/>бунта</th>
+                                        <th scope="col" style="vertical-align: middle; width: 250px;">Дата<br/>взвешивания</th>
+                                        <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="height:630px; overflow:auto;">
+                                    <table class="table table-hover">
+                                        <tbody>
+                                        @foreach (CoilData item in _selectedMelt)
+                                        {
+                                            if (!string.IsNullOrEmpty(item.MeltNumber))
+                                            {
+                                                <tr>
+                                                    <th style="width: 100px;">@item.MeltNumber</th>
+                                                    <td style="width: 100px;">@item.ProductionProfile</td>
+                                                    <td style="width: 100px;">@item.Diameter</td>
+                                                    <td style="width: 100px;">@item.CoilNumber</td>
+                                                    <td style="width: 155px;">@item.WeightFact</td>
+                                                    <td style="width: 250px;">@item.DateWeight</td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td style="width: 100px;">&nbsp;</td>
+                                                    <td style="width: 100px;">&nbsp;</td>
+                                                    <td style="width: 100px;">&nbsp;</td>
+                                                    <td style="width: 155px;">&nbsp;</td>
+                                                    <td style="width: 250px;">&nbsp;</td>
+                                                </tr>
+                                            }
+                                        }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

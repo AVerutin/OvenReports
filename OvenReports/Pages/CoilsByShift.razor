@@ -1,0 +1,152 @@
+﻿@page "/coilsByShift"
+@* inject ReportingService ReportingService *@
+@* inject IJSRuntime JSRuntime; *@
+
+<div>
+    <h1>Почасовой отчет за смену</h1>
+</div>
+
+<div class="alert alert-secondary mt-4" role="alert">
+    <EditForm Model="_meltsPeriod">
+        <div class="form-row">
+            <div class="form-group col-lg-2">
+                <label for="dataStart">Начало периода</label>
+                <InputDate id="dataStart" class="form-control" @bind-Value="@_meltsPeriod.PeriodStart"/>
+                @* <input type="date" class="form-control" id="dataStart" @bind="@_meltsPeriod.PeriodStart" /> *@
+            </div>
+            <div class="form-group col-lg-2">
+                <label for="dataFinish">Конец периода</label>
+                <InputDate id="dataFinish" class="form-control" @bind-Value="@_meltsPeriod.PeriodFinish"/>
+                @* <input type="datetime-local" class="form-control" id="dataFinish" @bind="@_finishPeriod" /> *@
+            </div>
+            <div class="form-group col-lg-2" style="text-align: left; vertical-align: middle;">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showReport" type="button" class="btn btn-primary" @onclick="@GetReportByPeriod">Сформировать</button>
+            </div>
+            
+            <div class="form-group col-md-auto">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showCurrentShift" type="button" class="btn btn-primary" @onclick="@GetReportByToday">За текущую смену</button>
+            </div>
+            <div class="form-group col-md-auto" style="text-align: center; vertical-align: middle;">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showPrevShift" type="button" class="btn btn-primary" @onclick="@GetReportByYesterday">За предыдущую смену</button>
+            </div>
+        </div>
+   </EditForm>
+</div>
+
+<div id="meltReport" style="display: @_showReport">
+    <table>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th scope="col" style="vertical-align: middle; width: 190px;">Начало<br/>периода</th>
+                        <th scope="col" style="vertical-align: middle; width: 190px;">Конец<br/>периода</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>бунтов</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="height:630px; overflow:auto;">
+                    <table class="table table-hover">
+                        <tbody>
+                        @foreach (ShiftReport item in _reportList)
+                        {
+                            <tr>
+                                <td style="width: 190px;">
+                                    @item.PeriodStart.ToString("dd-MM-yyyy HH:mm")
+                                </td>
+                                <td style="width: 190px;">
+                                    @item.PeriodEnd.ToString("dd-MM-yyyy HH:mm")
+                                </td>
+                                <td style="width: 100px;">@item.CoilsCount</td>
+                                <td style="width: 100px;">@item.CoilsWeight</td>
+                                <td style="width: 100px;">
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.CoilsCount); })">&#10050;</button>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<div class="modal fade bd-example-modal-lg" tabindex="-1" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Список бунтов плавки №@_meltInfo.MeltNumber, диаметр @_meltInfo.Diameter </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="viewMelt">
+                    @* <div class="h3">Плавка №@_currentMelt[0].MeltNumber диаметр @_currentMelt[0].Diameter от @_currentMelt[0].DateReg</div> *@
+                    <table>
+                        <tr>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">Плавка<br/>№</th>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр</th>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">№<br/>бунта</th>
+                                        <th scope="col" style="vertical-align: middle; width: 155px;">Вес<br/>бунта</th>
+                                        <th scope="col" style="vertical-align: middle; width: 250px;">Дата<br/>взвешивания</th>
+                                        <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="height:630px; overflow:auto;">
+                                    <table class="table table-hover">
+                                        <tbody>
+                                        @foreach (CoilData item in _selectedMelt)
+                                        {
+                                            if (!string.IsNullOrEmpty(item.MeltNumber))
+                                            {
+                                                <tr>
+                                                    <td style="width: 100px;">@item.MeltNumber</td>
+                                                    <td style="width: 100px;">@item.Diameter</td>
+                                                    <td style="width: 100px;">@item.CoilNumber</td>
+                                                    <td style="width: 155px;">@item.WeightFact</td>
+                                                    <td style="width: 250px;">@item.DateWeight</td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td style="width: 100px;">&nbsp;</td>
+                                                    <td style="width: 100px;">&nbsp;</td>
+                                                    <td style="width: 100px;">&nbsp;</td>
+                                                    <td style="width: 155px;">&nbsp;</td>
+                                                    <td style="width: 250px;">&nbsp;</td>
+                                                </tr>
+                                            }
+                                        }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
