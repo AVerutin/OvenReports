@@ -241,12 +241,12 @@ comment on function public.f_get_queue_coils(text, numeric) is 'Очередь �
 
 alter function public.f_get_queue_coils(text, numeric) owner to mts;
 
-
-create or replace function public.f_get_coils_period_hourly(p_start_date timestamp without time zone,
+drop function public.f_get_coils_period_hourly(timestamp, timestamp);
+create function public.f_get_coils_period_hourly(p_start_date timestamp without time zone,
                                                  p_finish_date timestamp without time zone)
     returns TABLE
             (
-                c_weighting_data text,
+                c_weighting_data timestamp without time zone,
                 c_weighting_hour numeric,
                 c_coils          numeric,
                 c_weight_fact    numeric
@@ -256,10 +256,11 @@ as
 $$
 BEGIN
     RETURN QUERY
-        select (to_char(weight_data, 'DD-MM-YYYY'))    as date,
-               extract(hour from weight_data)::numeric as hour,
-               count(coil_id)::numeric                 as coils,
-               sum(weight_fact)                        as weight_fact
+	-- Для локального компьютера изменить формат даты на 'DD-MM-YYYY'
+        select (to_char(weight_data, 'MM-DD-YYYY'))::timestamp as date,
+               extract(hour from weight_data)::numeric         as hour,
+               count(coil_id)::numeric                         as coils,
+               sum(weight_fact)                                as weight_fact
         from (
                  SELECT mts.f_unit_id_parent_recursive(t.unit_id, 1)                     posad_id,    -- Идентификатор посада
                         max(case when p.param_id = 10000001 then p.value_s end)::text as melt_no,
@@ -293,6 +294,7 @@ comment on function public.f_get_coils_period_hourly(timestamp, timestamp) is '�
 alter function public.f_get_coils_period_hourly(timestamp, timestamp) owner to mts;
 
 
+drop function public.f_get_coils_period_hourly_detail(timestamp, timestamp);
 create or replace function public.f_get_coils_period_hourly_detail(p_start_date timestamp without time zone,
                                                         p_finish_date timestamp without time zone)
     returns TABLE
@@ -687,6 +689,45 @@ end;
 $$;
 
 comment on function public.f_get_report_by_shift(timestamp, timestamp) is 'Сводный отчет за период с группировкой по сменам';
+
+alter function public.f_get_report_by_shift(timestamp, timestamp) owner to mts;
+
+
+drop function public.f_get_report_by_shift(timestamp, timestamp);
+create function public.f_get_report_by_shift(p_start_date timestamp without time zone,
+                                                  p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_shift_number  numeric,
+                c_start_time    timestamp without time zone,
+                c_finish_time   timestamp without time zone,
+                c_coils         numeric,
+                c_weight        numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT
+               (((extract(epoch from date_close-'01-01-2020 08:00:00'::timestamp))::integer/3600)/12)::numeric as c_shift_number,
+               min(date_close) as c_start_time,
+               max(date_close) as c_finish_time,
+               count(*)::numeric as c_coils,
+               sum(ps.value_n)::numeric as c_weight
+        FROM mts.unit_tasks t
+            join mts.passport ps on ps.unit_id = t.unit_id and ps.param_id = 10000014 -- вес бунта
+        WHERE t.project_id = 1
+            and t.node_id = 10000                      -- печать бирок
+            and t.date_close is not null               -- есть вес
+            -- and t.date_close between now()-interval '1 month' and now() --период взвешивания
+            and t.date_close between p_start_date and p_finish_date --период взвешивания
+        GROUP BY 1
+        ORDER BY 1;
+END;
+$$;
+
+comment on function public.f_get_report_by_shift(timestamp, timestamp) is 'Сводный отчет по взвешенным бунтам за период в разрезе смен';
 
 alter function public.f_get_report_by_shift(timestamp, timestamp) owner to mts;
 

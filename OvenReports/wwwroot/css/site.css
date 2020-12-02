@@ -186,10 +186,17 @@ th, td {
     text-align: center;
 }
 
-#meltReport {
+#shiftReport {
     border: 2px solid #818182;
     border-radius: 15px;
-    width: auto;
+    width: 700px;
+    height: 700px;
+}
+
+#coilByDaysReport {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: 850px;
     height: 700px;
 }
 
@@ -200,3 +207,9 @@ th, td {
     height: 700px;
 }
 
+#meltReport {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: auto;
+    height: 700px;
+}

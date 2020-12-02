@@ -950,7 +950,7 @@ namespace OvenReports.Data
             List<MeltsForPeriod> result = new List<MeltsForPeriod>();
             DataTable dataTable = new DataTable();
             string query =
-                $"select * from f_get_coils_period_hourly('{startPeriod:O}', '{finishPeriod:O}');";
+                $"select * from public.f_get_coils_period_hourly('{startPeriod:O}', '{finishPeriod:O}');";
 
             try
             {
@@ -1148,20 +1148,25 @@ namespace OvenReports.Data
                             {
                                 string val = dataTable.Rows[i][0].ToString();
                                 if (string.IsNullOrEmpty(val))
-                                    val = "01-01-2020 00:00:00";
-                                item.PeriodStart = DateTime.Parse(val);
+                                    val = "0";
+                                item.ShiftNumber = int.Parse(val);
 
                                 val = dataTable.Rows[i][1].ToString();
                                 if (string.IsNullOrEmpty(val))
                                     val = "01-01-2020 00:00:00";
-                                item.PeriodEnd = DateTime.Parse(val);
+                                item.PeriodStart = DateTime.Parse(val);
 
                                 val = dataTable.Rows[i][2].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "01-01-2020 00:00:00";
+                                item.PeriodEnd = DateTime.Parse(val);
+
+                                val = dataTable.Rows[i][3].ToString();
                                 if (string.IsNullOrEmpty(val))
                                     val = "0";
                                 item.CoilsCount = int.Parse(val);
 
-                                val = dataTable.Rows[i][3].ToString();
+                                val = dataTable.Rows[i][4].ToString();
                                 if (string.IsNullOrEmpty(val))
                                     val = "0";
                                 item.CoilsWeight = int.Parse(val);

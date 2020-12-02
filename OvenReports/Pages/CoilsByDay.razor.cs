@@ -142,10 +142,29 @@ namespace OvenReports.Pages
                         sorted.Add(hour);
                     }
                 }
-                
-                // _logger.Info($"Дата: [{hour.WeightingData:d}] час: [{hour.WeightingHourStart}]");
             }
+                
+            // Если конечный период не текущая дата, то заполняем часы до 24
+            DateTime now = DateTime.Now;
+            // DateTime lastDate = sorted[^1].WeightingData;
+            // int lastHours = sorted[^1].WeightingData.Hour;
             
+            if (now.Date != prevDate.Date)
+            {
+                if (prevHour < 24)
+                {
+                    for (int i = prevHour+1; i < 24; i++)
+                    {
+                        MeltsForPeriod tmp = new MeltsForPeriod
+                        {
+                            WeightingData = prevDate,
+                            WeightingHourStart = i,
+                            WeightingHourFinish = i + 1
+                        };
+                        sorted.Add(tmp);
+                    }
+                }
+            }
 
             int totalCoilsCount = 0;
             int totalWeightFact = 0;

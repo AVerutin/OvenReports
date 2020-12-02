@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using OvenReports.Data;
 using NLog;
 
 namespace OvenReports.Pages
 {
-    public partial class ShiftReports
+    public partial class CoilsByShift
     {
         private struct MeltInfo
         {
@@ -26,6 +25,7 @@ namespace OvenReports.Pages
         protected override void OnInitialized()
         {
             _logger = LogManager.GetCurrentClassLogger();
+            _logger.Info("Запущен отчет по бунтам");
             Initialize();
         }
 

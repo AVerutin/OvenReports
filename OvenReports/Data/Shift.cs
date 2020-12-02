@@ -99,19 +99,21 @@ namespace OvenReports.Data
         {
             string startShift;
             
+            // Текущий час между 8:00 и 20:00, смена началась сегодня в 8:00
             if (currentTime.Hour >= 8 && currentTime.Hour < 20)
             {
                 startShift = $"{currentTime.Day}-{currentTime.Month}-{currentTime.Year} 08:00:00";
             }
             else
             {
-                // Проверим, смена началась в этих сутках, или в прошлых
-                if(currentTime.Hour > 20)
+                // Текущий час больше 20:00, смена началась сегодня в 20:00
+                if(currentTime.Hour >= 20)
                 {
                     startShift = $"{currentTime.Day}-{currentTime.Month}-{currentTime.Year} 20:00:00";
                 }
                 else
                 {
+                    // Текущий час меньше 8:00, смена началась вчера в 20:00
                     var endDate = currentTime.AddDays(-1);
                     startShift = $"{endDate.Day}-{endDate.Month}-{endDate.Year} 20:00:00";
                 }
@@ -127,7 +129,7 @@ namespace OvenReports.Data
 
             if (currentTime.Hour >= 8 && currentTime.Hour < 20)
             {
-                // Текущий час от 8 до 20 часов
+                // Текущий час между 8 и 20 часов, смена закончится в сегодня в 20:00
                 string time = $"{currentTime.Day}-{currentTime.Month}-{currentTime.Year} 20:00:00";
                 result = DateTime.Parse(time);
             }
@@ -135,9 +137,8 @@ namespace OvenReports.Data
             {
                 if (currentTime.Hour < 8)
                 {
-                    // Текущий час менее 8 часов
-                    DateTime yesterday = DateTime.Now.AddDays(-1);
-                    string time = $"{yesterday.Day}-{yesterday.Month}-{yesterday.Year} 20:00:00";
+                    // Текущий час менее 8 часов, смена законится сегодня в 8:00
+                    string time = $"{currentTime.Day}-{currentTime.Month}-{currentTime.Year} 08:00:00";
                     result = DateTime.Parse(time);
                 }
                 else
