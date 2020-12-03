@@ -26,6 +26,7 @@ namespace OvenReports.Data
         public string Standart { get; set; }
         public double Diameter { get; set; }
         public string Customer { get; set; }
+        public int ShiftNumber { get; set; }
 
         public List<CoilData> CoilsList { get; set; }
         
@@ -53,6 +54,7 @@ namespace OvenReports.Data
             Standart = default;
             Diameter = default;
             Customer = default;
+            ShiftNumber = default;
         }
 
         public DateTime GetStartOfMonth(DateTime date)

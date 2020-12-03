@@ -26,26 +26,30 @@
             
             <div class="form-group col-md-auto">
                 <div style="height: 32px">&nbsp;</div>
-                <button id="showCurrentShift" type="button" class="btn btn-primary" @onclick="@GetReportByToday">За текущую смену</button>
+                <button id="showCurrentShift" type="button" class="btn btn-primary" @onclick="@GetReportCurrentShift">За текущую смену</button>
             </div>
             <div class="form-group col-md-auto" style="text-align: center; vertical-align: middle;">
                 <div style="height: 32px">&nbsp;</div>
-                <button id="showPrevShift" type="button" class="btn btn-primary" @onclick="@GetReportByYesterday">За предыдущую смену</button>
+                <button id="showPrevShift" type="button" class="btn btn-primary" @onclick="@GetReportByPreviousShift">За предыдущую смену</button>
             </div>
         </div>
    </EditForm>
 </div>
 
-<div id="meltReport" style="display: @_showReport">
+<div id="coilByShiftReport" style="display: @_showReport">
     <table>
         <tr>
             <td>
                 <table>
                     <tr>
-                        <th scope="col" style="vertical-align: middle; width: 190px;">Начало<br/>периода</th>
-                        <th scope="col" style="vertical-align: middle; width: 190px;">Конец<br/>периода</th>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>бунтов</th>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>годного</th>
+                        @* <th scope="col" style="vertical-align: middle; width: 100px;">№ смены</th> *@
+                        <th scope="col" style="vertical-align: middle; width: 190px;">Дата</th>
+                        <th scope="col" style="vertical-align: middle; width: 190px;">Час</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Кол-во<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Вес<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Итого кол-во<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Итого вес<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Бунты</th>
                         <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
                     </tr>
                 </table>
@@ -56,21 +60,40 @@
                 <div style="height:630px; overflow:auto;">
                     <table class="table table-hover">
                         <tbody>
-                        @foreach (ShiftReport item in _reportList)
+                        @foreach (MeltsForPeriod item in _meltsList)
                         {
-                            <tr>
-                                <td style="width: 190px;">
-                                    @item.PeriodStart.ToString("dd-MM-yyyy HH:mm")
-                                </td>
-                                <td style="width: 190px;">
-                                    @item.PeriodEnd.ToString("dd-MM-yyyy HH:mm")
-                                </td>
-                                <td style="width: 100px;">@item.CoilsCount</td>
-                                <td style="width: 100px;">@item.CoilsWeight</td>
-                                <td style="width: 100px;">
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.CoilsCount); })">&#10050;</button>
-                                </td>
-                            </tr>
+                            if (item.WeightingData == DateTime.MinValue)
+                            {
+                                <tr style="background-color: #f2f2f2">
+                                    @* <td style="width: 100px;">&nbsp;</td> *@
+                                    <td style="width: 190px;">&nbsp;</td>
+                                    <td style="width: 190px;">&nbsp;</td>
+                                    <td style="width: 150px;">&nbsp;</td>
+                                    <td style="width: 150px;">&nbsp;</td>
+                                    <td style="width: 150px;">&nbsp;</td>
+                                    <td style="width: 150px;">&nbsp;</td>
+                                    <td style="width: 100px;">&nbsp;</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    @* <td style="width: 100px;">@item.ShiftNumber</td> *@
+                                    <td style="width: 190px;">
+                                        @item.WeightingData.ToString("dd-MM-yyyy")
+                                    </td>
+                                    <td style="width: 190px;">
+                                        @item.WeightingHourStart.ToString("D2"):00 &mdash; @item.WeightingHourFinish.ToString("D2"):00
+                                    </td>
+                                    <td style="width: 150px;">@item.CoilsCount</td>
+                                    <td style="width: 150px;">@item.WeightFact</td>
+                                    <td style="width: 150px;">@item.TotalCoilsCount</td>
+                                    <td style="width: 150px;">@item.TotalWeightFact</td>
+                                    <td style="width: 100px;">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => PrepareCoils(item.WeightingData, item.WeightingHourStart))">&#10050;</button>
+                                    </td>
+                                </tr>
+                            }
                         }
                         </tbody>
                     </table>
@@ -85,7 +108,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Список бунтов плавки №@_meltInfo.MeltNumber, диаметр @_meltInfo.Diameter </h5>
+                <h5 class="modal-title" id="exampleModalLabel">Список бунтов за @_meltInfo.StartPeriod.ToString("d") c @_meltInfo.StartPeriod.ToString("t") по @_meltInfo.FinishPeriod.ToString("t")</h5> 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -99,7 +122,8 @@
                                 <table>
                                     <tr>
                                         <th scope="col" style="vertical-align: middle; width: 100px;">Плавка<br/>№</th>
-                                        <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр</th>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">Профиль</th>
+                                        <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр<br/>профиля</th>
                                         <th scope="col" style="vertical-align: middle; width: 100px;">№<br/>бунта</th>
                                         <th scope="col" style="vertical-align: middle; width: 155px;">Вес<br/>бунта</th>
                                         <th scope="col" style="vertical-align: middle; width: 250px;">Дата<br/>взвешивания</th>
@@ -119,6 +143,7 @@
                                             {
                                                 <tr>
                                                     <td style="width: 100px;">@item.MeltNumber</td>
+                                                    <td style="width: 100px;">@item.ProductionProfile</td>
                                                     <td style="width: 100px;">@item.Diameter</td>
                                                     <td style="width: 100px;">@item.CoilNumber</td>
                                                     <td style="width: 155px;">@item.WeightFact</td>
@@ -127,7 +152,8 @@
                                             }
                                             else
                                             {
-                                                <tr>
+                                                <tr style="background-color: #f2f2f2">
+                                                    <td style="width: 100px;">&nbsp;</td>
                                                     <td style="width: 100px;">&nbsp;</td>
                                                     <td style="width: 100px;">&nbsp;</td>
                                                     <td style="width: 100px;">&nbsp;</td>

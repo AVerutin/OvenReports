@@ -986,6 +986,11 @@ namespace OvenReports.Data
                                 if (string.IsNullOrEmpty(val))
                                     val = "0";
                                 item.WeightFact = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][4].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.ShiftNumber = int.Parse(val);
                             }
                             catch (Exception ex)
                             {
@@ -1116,6 +1121,76 @@ namespace OvenReports.Data
             catch (Exception ex)
             {
                 _logger.Error($"Не удалось получить данные для плавки №{melt} с диаметром {diam} [{ex.Message}]");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить сводные данные по суткам за период
+        /// </summary>
+        /// <param name="startPeriod">Начало периода</param>
+        /// <param name="finishPeriod">Конец периода</param>
+        /// <returns>Сводные данные за период</returns>
+        public List<DailyReport> GetDailyReport(DateTime startPeriod, DateTime finishPeriod)
+        {
+            List<DailyReport> result = new List<DailyReport>();
+            DataTable dataTable = new DataTable();
+            string query = $"select * from public.f_get_report_by_days('{startPeriod:O}', '{finishPeriod:O}');";
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            DailyReport item = new DailyReport();
+                            try
+                            {
+                                string val = dataTable.Rows[i][0].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "01-01-2020 00:00:00";
+                                item.Date = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][1].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "01-01-2020 00:00:00";
+                                item.PeriodStart = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][2].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "01-01-2020 00:00:00";
+                                item.PeriodEnd = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][3].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.CoilsCount = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][4].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.CoilsWeight = int.Parse(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать сводные данные по суткам за период с {startPeriod} по {finishPeriod} [{ex.Message}]");
+                            }
+                            
+                            result.Add(item);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    $"Не удалось получить сводные данные по суткам за период с {startPeriod} по {finishPeriod} [{ex.Message}]");
             }
 
             return result;

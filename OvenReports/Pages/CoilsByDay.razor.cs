@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using OvenReports.Data;
 using NLog;
 
@@ -232,6 +231,7 @@ namespace OvenReports.Pages
         {
             _selectedMelt = new List<CoilData>();
             string startTime = $"{date.Day}-{date.Month}-{date.Year} {hour}:00:00";
+            // string finishTime = $"{date.Day}-{date.Month}-{date.Year} {hour}:59:59.999";
             
             DateTime start = DateTime.Parse(startTime);
             DateTime finish = start.AddHours(1);

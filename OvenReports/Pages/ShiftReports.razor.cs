@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using OvenReports.Data;
 using NLog;
 
@@ -162,7 +161,6 @@ namespace OvenReports.Pages
                 shiftNumber = item.ShiftNumber;
             }
 
-
             int difference = maxShiftNumber - shiftNumber;
             if (difference > 0)
             {
@@ -183,6 +181,17 @@ namespace OvenReports.Pages
                     shiftTime = shiftTime.AddHours(12);
                     shiftNumber = shift.ShiftNumber;
                 }
+            }
+
+            int totalCoils = 0;
+            int totalWeight = 0;
+            foreach (ShiftReport item in _reportList)
+            {
+                totalCoils += item.CoilsCount;
+                totalWeight += item.CoilsWeight;
+            
+                item.TotalCoils = totalCoils;
+                item.TotalWeight = totalWeight;
             }
         }
 

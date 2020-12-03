@@ -46,6 +46,8 @@
                         <th scope="col" style="vertical-align: middle; width: 190px;">Конец<br/>периода</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>бунтов</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Итого кол-во<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Итого вес<br/>годного</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">По<br/>часам</th>
                         <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
                     </tr>
@@ -68,6 +70,8 @@
                                 </td>
                                 <td style="width: 100px;">@item.CoilsCount</td>
                                 <td style="width: 100px;">@item.CoilsWeight</td>
+                                <td style="width: 150px;">@item.TotalCoils</td>
+                                <td style="width: 150px;">@item.TotalWeight</td>
                                 @if (item.CoilsCount > 0)
                                 {
                                     <td style="width: 100px;">
@@ -95,7 +99,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Производство по часам с @_meltInfo.StartDate.ToString("dd-MM-yyyy HH:mm"), по @_meltInfo.FinishDate.ToString("dd-MM-yyyy HH:mm") </h5>
+                <h5 class="modal-title" id="exampleModalLabel">Производство по часам с @_meltInfo.StartDate.ToString("dd-MM-yyyy HH:mm"), по @_meltInfo.FinishDate.ToString("dd-MM-yyyy HH:mm")</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

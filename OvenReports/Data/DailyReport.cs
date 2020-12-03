@@ -2,9 +2,9 @@
 
 namespace OvenReports.Data
 {
-    public class ShiftReport
+    public class DailyReport
     {
-        public int ShiftNumber { get; set; }
+        public DateTime Date { get; set; }
         public DateTime PeriodStart { get; set; }
         public DateTime PeriodEnd { get; set; }
         public int CoilsCount { get; set; }
@@ -12,9 +12,9 @@ namespace OvenReports.Data
         public int TotalCoils { get; set; }
         public int TotalWeight { get; set; }
 
-        public ShiftReport()
+        public DailyReport()
         {
-            ShiftNumber = default;
+            Date = new DateTime();
             PeriodStart = new DateTime();
             PeriodEnd = new DateTime();
             CoilsCount = default;
