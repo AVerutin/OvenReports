@@ -186,6 +186,13 @@ th, td {
     text-align: center;
 }
 
+#meltReport {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: 1750px;
+    height: 700px;
+}
+
 #shiftReport {
     border: 2px solid #818182;
     border-radius: 15px;
@@ -218,5 +225,12 @@ th, td {
     border: 2px solid #818182;
     border-radius: 15px;
     width: 700px;
+    height: 700px;
+}
+
+#downtimesReport {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: 650px;
     height: 700px;
 }

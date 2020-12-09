@@ -4,6 +4,7 @@ using System.Data;
 using Microsoft.Extensions.Configuration;
 using NLog;
 using Npgsql;
+using OvenReports.Annotations;
 
 namespace OvenReports.Data
 {
@@ -1265,5 +1266,130 @@ namespace OvenReports.Data
 
             return result;
         }
+        
+        /// <summary>
+        /// Открыть новый, или закрыть ранее открытый простой
+        /// </summary>
+        /// <param name="startTime">Время начала или окончания простоя</param>
+        /// <param name="comment">Комментарий</param>
+        public void SetDowntime(DateTime? startTime, [CanBeNull] string comment)
+        {
+            string query = "call public.p_set_downtime(";
+            
+            if (startTime != null)
+            {
+                query += $"'{startTime:O}'";
+            }
+            else
+            {
+                DateTime start = DateTime.Now.AddMinutes(-3);
+                query += $"'{start:O}'";
+            }
+
+            if (!string.IsNullOrEmpty(comment))
+            {
+                query += $", '{comment}'";
+            }
+            else
+            {
+                query += ", ''";
+            }
+            
+            query += ");";
+            bool res = WriteData(query);
+            if (!res)
+            {
+                _logger.Error($"Не удалось открыть простой с датой начала {startTime} и комментарием {comment}");
+            }
+        }
+
+        /// <summary>
+        /// Получить список простоев за период
+        /// </summary>
+        /// <param name="startTime">Начало периода</param>
+        /// <param name="finishTime">Конец периода</param>
+        /// <returns></returns>
+        public List<DownTime> GetDowntimes(DateTime startTime, DateTime finishTime)
+        {
+            List<DownTime> result = new List<DownTime>();
+            DataTable dataTable = new DataTable();
+            string query = $"select * from public.f_get_downtimes('{startTime:O}', '{finishTime:O}');";
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            DownTime item = new DownTime();
+                            try
+                            {
+                                string val = dataTable.Rows[i][0].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "01-01-2020 00:00:00";
+                                item.TimeStart = DateTime.Parse(val);
+
+                                val = dataTable.Rows[i][1].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "01-01-2020 00:00:00";
+                                item.TimeFinish = DateTime.Parse(val);
+
+                                val = dataTable.Rows[i][2].ToString();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                item.Comment = val;
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать данные по простоям за период с {startTime} по {finishTime} [{ex.Message}]");                            }
+                            
+                            result.Add(item);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    $"Не удалось получить данные по простоям за период с {startTime} по {finishTime} [{ex.Message}]");
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// Записать данные в таблицу БД
+        /// </summary>
+        /// <param name="query">SQL-запрос</param>
+        /// <returns>Результат выполнения операции</returns>
+        private bool WriteData(string query)
+        {
+            bool result = false;
+
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+                        command.ExecuteNonQuery();
+                    connection.Close();
+                }
+
+                result = true;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Не удалось записать данные в базу данных: [{e.Message}]");
+            }
+
+            return result;
+        }
+
     }
 }

@@ -144,24 +144,21 @@ namespace OvenReports.Pages
             }
                 
             // Если конечный период не текущая дата, то заполняем часы до 24
+            // Иначе только до текущего часа
             DateTime now = DateTime.Now;
-            // DateTime lastDate = sorted[^1].WeightingData;
-            // int lastHours = sorted[^1].WeightingData.Hour;
-            
-            if (now.Date != prevDate.Date)
+            int finishHour = now.Date != prevDate.Date ? 23 : now.Hour;
+
+            if (prevHour < finishHour)
             {
-                if (prevHour < 24)
+                for (int i = prevHour + 1; i <= finishHour; i++)
                 {
-                    for (int i = prevHour+1; i < 24; i++)
+                    MeltsForPeriod tmp = new MeltsForPeriod
                     {
-                        MeltsForPeriod tmp = new MeltsForPeriod
-                        {
-                            WeightingData = prevDate,
-                            WeightingHourStart = i,
-                            WeightingHourFinish = i + 1
-                        };
-                        sorted.Add(tmp);
-                    }
+                        WeightingData = prevDate,
+                        WeightingHourStart = i,
+                        WeightingHourFinish = i + 1
+                    };
+                    sorted.Add(tmp);
                 }
             }
 

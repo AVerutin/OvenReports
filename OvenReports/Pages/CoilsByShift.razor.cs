@@ -135,6 +135,9 @@ namespace OvenReports.Pages
             List<MeltsForPeriod> result = new List<MeltsForPeriod>();
             List<MeltsForPeriod> sorted = new List<MeltsForPeriod>();
             List<MeltsForPeriod> meltsList = new List<MeltsForPeriod>();
+            DateTime date = new DateTime();
+            DateTime now = new DateTime();
+            int startHour;
             
             try
             {
@@ -153,8 +156,8 @@ namespace OvenReports.Pages
                 if (start.Hour == 8)
                 {
                     // Дневная смена
-                    int startHour = 7;
-                    DateTime date = new DateTime();
+                    startHour = 7;
+                    date = new DateTime();
                     foreach (MeltsForPeriod item in meltsList)
                     {
                         if (shiftNumber == 0)
@@ -176,16 +179,19 @@ namespace OvenReports.Pages
                                 sorted.Add(tmp);
                             }
                         }
-
-                        sorted.Add(item);
+                        
                         startHour = item.WeightingHourStart;
                         shiftNumber = item.ShiftNumber;
                         date = item.WeightingData;
+                        sorted.Add(item);
                     }
 
-                    if (startHour < 19 && date.Date != DateTime.Now.Date)
+                    DateTime today = DateTime.Now;
+                    int finishHour = date.Date == today.Date ? today.Hour : 19;
+                    
+                    if (startHour < finishHour)
                     {
-                        for (int i = startHour + 1; i <= 19; i++)
+                        for (int i = startHour + 1; i <= finishHour; i++)
                         {
                             MeltsForPeriod tmp = new MeltsForPeriod
                             {
@@ -202,8 +208,8 @@ namespace OvenReports.Pages
                 else
                 {
                     // Ночная смена
-                    int startHour = 19;
-                    DateTime date = new DateTime();
+                    startHour = 19;
+                    date = new DateTime();
 
                     foreach (MeltsForPeriod item in meltsList)
                     {
@@ -229,6 +235,14 @@ namespace OvenReports.Pages
                                     sorted.Add(tmp);
                                 }
                             }
+                            
+                            // Заполнить недостающие часы для первой половины ночной смены
+                            // now = DateTime.Now;
+                            // if (now.Hour > 20)
+                            // {
+                            //     // Проверить последний заполненный час
+                            //     // и заполнить до текущего часа
+                            // }
 
                             sorted.Add(item);
                             startHour = item.WeightingHourStart;
@@ -264,6 +278,7 @@ namespace OvenReports.Pages
                                 }
                             }
 
+                            // Заполнить недостающие часы
                             int diff = item.WeightingHourStart - startHour;
                             if (diff > 1)
                             {
@@ -280,6 +295,14 @@ namespace OvenReports.Pages
                                     sorted.Add(tmp);
                                 }
                             }
+                            
+                            // Заполнить недостающие часы для второй половины текущей смены
+                            // now = DateTime.Now;
+                            // if (now.Hour < 8)
+                            // {
+                            //     // Проверить последний заполненный час
+                            //     // и заполнить до текущего часа
+                            // }
 
                             sorted.Add(item);
 
