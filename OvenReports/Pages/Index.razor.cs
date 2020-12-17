@@ -13,11 +13,11 @@ namespace OvenReports.Pages
             public double Diameter;
         }
         
-        private MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
+        private readonly MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
         private List<LandingData> _meltsList = new List<LandingData>();
         private List<MeltsList> melts = new List<MeltsList>();
         
-        private DBConnection _db = new DBConnection();
+        private readonly DBConnection _db = new DBConnection();
         private List<CoilData> _selectedMelt = new List<CoilData>();
         private string _showReport = "none";
         private MeltInfo _meltInfo;
@@ -39,13 +39,13 @@ namespace OvenReports.Pages
             string meltNumber = _meltsPeriod.MeltNumber;
             if (!string.IsNullOrEmpty(meltNumber))
             {
-                List<LandingData> melts_list = new List<LandingData>();
+                List<LandingData> meltsList = new List<LandingData>();
                 _meltsList = new List<LandingData>();
                 
                 try
                 {
                     //_meltsList = _db.GetMeltByNumber(meltNumber);
-                    melts_list = _db.GetMeltByNumber(meltNumber);
+                    meltsList = _db.GetMeltByNumber(meltNumber);
                 }
                 catch (Exception ex)
                 {
@@ -53,7 +53,7 @@ namespace OvenReports.Pages
                         $"Не удалось получить плавки №{meltNumber} [{ex.Message}]");
                 }
 
-                foreach (LandingData melt in melts_list)
+                foreach (LandingData melt in meltsList)
                 {
                     if(melt.Weighted>0)
                         _meltsList.Add(melt);

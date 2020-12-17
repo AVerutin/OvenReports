@@ -41,17 +41,17 @@
                         <th scope="col" style="vertical-align: middle; width: 90px;">№<br/>плавки</th>
                         <th scope="col" style="vertical-align: middle; width: 90px;">Профиль</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр<br/>профиля</th>
-                        <th scope="col" style="vertical-align: middle; width: 190px;">Дата</th>
-                        <th scope="col" style="vertical-align: middle; width: 150px;">Марка<br/>стали</th>
-                        <th scope="col" style="vertical-align: middle; width: 150px;">Сечение</th>
+                        <th scope="col" style="vertical-align: middle; width: 160px;">Дата</th>
+                        <th scope="col" style="vertical-align: middle; width: 120px;">Марка<br/>стали</th>
+                        <th scope="col" style="vertical-align: middle; width: 120px;">Сечение</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>заготовок</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Длина<br/>заготовки</th>
                         <th scope="col" style="vertical-align: middle; width: 150px;">Стандарт</th>
-                        <th scope="col" style="vertical-align: middle; width: 150px;">Код<br />продукции</th>
+                        <th scope="col" style="vertical-align: middle; width: 120px;">Код<br />продукции</th>
                         <th scope="col" style="vertical-align: middle; width: 150px;">Заказчик</th>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>бунтов</th>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>годного</th>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Бунты</th>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">Кол-во<br/>бунтов</th>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">Вес<br/>годного</th>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">Бунты</th>
                         <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
                     </tr>
                 </table>
@@ -65,23 +65,23 @@
                         @foreach (LandingData item in _meltsList)
                         {
                             <tr>
-                                <th scope="row" style="width: 90px;">@item.MeltNumber</th>
-                                <td style="width: 90px;">@item.ProductProfile</td>
-                                <td style="width: 100px;">@item.Diameter</td>
-                                <td style="width: 190px;">
-                                    @item.FirstWeighting.ToString("dd-MM-yyyy HH:mm")
+                                <th class="align-middle" scope="row" style="width: 90px;">@item.MeltNumber</th>
+                                <td class="align-middle" style="width: 90px;">@item.ProductProfile</td>
+                                <td class="align-middle" style="width: 100px;">@item.Diameter</td>
+                                <td class="align-middle" style="width: 160px;">
+                                    @item.FirstWeighting.ToString("dd-MM-yyyy HH:mm")<br/>
                                     @item.LastWeighting.ToString("dd-MM-yyyy HH:mm")
                                 </td>
-                                <td style="width: 150px;">@item.SteelMark</td>
-                                <td style="width: 150px;">@item.IngotProfile</td>
-                                <td style="width: 100px;">@item.IngotsCount</td>
-                                <td style="width: 100px;">@item.IngotLength</td>
-                                <td style="width: 150px;">@item.Standart</td>
-                                <td style="width: 150px;">@item.ProductCode</td>
-                                <td style="width: 150px;">@item.Customer</td>
-                                <td style="width: 100px;">@item.Weighted</td>
-                                <td style="width: 100px;">@item.WeightReal</td>
-                                <td style="width: 100px;">
+                                <td class="align-middle" style="width: 120px;">@item.SteelMark</td>
+                                <td class="align-middle" style="width: 120px;">@item.IngotProfile</td>
+                                <td class="align-middle" style="width: 100px;">@item.IngotsCount</td>
+                                <td class="align-middle" style="width: 100px;">@item.IngotLength</td>
+                                <td class="align-middle" style="width: 150px;">@item.Standart</td>
+                                <td class="align-middle" style="width: 120px;">@item.ProductCode</td>
+                                <td class="align-middle" style="width: 150px;">@item.Customer</td>
+                                <td class="align-middle" style="width: 90px;">@item.Weighted</td>
+                                <td class="align-middle" style="width: 90px;">@item.WeightReal</td>
+                                <td class="align-middle" style="width: 90px;">
                                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.MeltNumber, item.Diameter); })">&#10050;</button>
                                 </td>
                             </tr>

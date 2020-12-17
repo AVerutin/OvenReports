@@ -42,8 +42,8 @@
             <td>
                 <table>
                     <tr>
-                        <th scope="col" style="vertical-align: middle; width: 190px;">Начало<br/>периода</th>
-                        <th scope="col" style="vertical-align: middle; width: 190px;">Конец<br/>периода</th>
+                        <th scope="col" style="vertical-align: middle; width: 200px;">Начало<br/>периода</th>
+                        <th scope="col" style="vertical-align: middle; width: 200px;">Конец<br/>периода</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>бунтов</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>годного</th>
                         <th scope="col" style="vertical-align: middle; width: 150px;">Итого кол-во<br/>годного</th>
@@ -62,25 +62,25 @@
                         @foreach (ShiftReport item in _reportList)
                         {
                             <tr style="height: 63px; vertical-align: middle;">
-                                <td style="width: 190px;">
+                                <td class="align-middle" style="width: 200px;">
                                     @item.PeriodStart.ToString("dd-MM-yyyy HH:mm")
                                 </td>
-                                <td style="width: 190px;">
+                                <td class="align-middle" style="width: 200px;">
                                     @item.PeriodEnd.ToString("dd-MM-yyyy HH:mm")
                                 </td>
-                                <td style="width: 100px;">@item.CoilsCount</td>
-                                <td style="width: 100px;">@item.CoilsWeight</td>
-                                <td style="width: 150px;">@item.TotalCoils</td>
-                                <td style="width: 150px;">@item.TotalWeight</td>
+                                <td class="align-middle" style="width: 100px;">@item.CoilsCount</td>
+                                <td class="align-middle" style="width: 100px;">@item.CoilsWeight</td>
+                                <td class="align-middle" style="width: 150px;">@item.TotalCoils</td>
+                                <td class="align-middle" style="width: 150px;">@item.TotalWeight</td>
                                 @if (item.CoilsCount > 0)
                                 {
-                                    <td style="width: 100px;">
+                                    <td class="align-middle" style="width: 100px;">
                                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.PeriodStart, item.PeriodEnd); })">&#10050;</button>
                                     </td>
                                 }
                                 else
                                 {
-                                    <td style="width: 100px;">
+                                    <td class="align-middle" style="width: 100px;">
                                         &nbsp;
                                     </td>
                                 }
@@ -131,16 +131,16 @@
                                         @foreach (MeltsForPeriod item in _meltsList)
                                         {
                                             <tr>
-                                                <td style="width: 190px;">
+                                                <td class="align-middle" style="width: 190px;">
                                                     @item.WeightingData.ToString("dd-MM-yyyy")
                                                 </td>
-                                                <td style="width: 190px;">
+                                                <td class="align-middle" style="width: 190px;">
                                                     @item.WeightingHourStart.ToString("D2"):00 &mdash; @item.WeightingHourFinish.ToString("D2"):00
                                                 </td>
-                                                <td style="width: 150px;">@item.CoilsCount</td>
-                                                <td style="width: 150px;">@item.WeightFact</td>
-                                                <td style="width: 150px;">@item.TotalCoilsCount</td>
-                                                <td style="width: 150px;">@item.TotalWeightFact</td>
+                                                <td class="align-middle" style="width: 150px;">@item.CoilsCount</td>
+                                                <td class="align-middle" style="width: 150px;">@item.WeightFact</td>
+                                                <td class="align-middle" style="width: 150px;">@item.TotalCoilsCount</td>
+                                                <td class="align-middle" style="width: 150px;">@item.TotalWeightFact</td>
                                             </tr>
                                         }
                                         </tbody>

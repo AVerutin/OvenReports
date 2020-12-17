@@ -1330,12 +1330,12 @@ namespace OvenReports.Data
                             {
                                 string val = dataTable.Rows[i][0].ToString();
                                 if (string.IsNullOrEmpty(val))
-                                    val = "01-01-2020 00:00:00";
+                                    val = "01-01-0001 00:00:00";
                                 item.TimeStart = DateTime.Parse(val);
 
                                 val = dataTable.Rows[i][1].ToString();
                                 if (string.IsNullOrEmpty(val))
-                                    val = "01-01-2020 00:00:00";
+                                    val = "01-01-0001 00:00:00";
                                 item.TimeFinish = DateTime.Parse(val);
 
                                 val = dataTable.Rows[i][2].ToString();

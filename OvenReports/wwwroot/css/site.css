@@ -189,7 +189,7 @@ th, td {
 #meltReport {
     border: 2px solid #818182;
     border-radius: 15px;
-    width: 1750px;
+    width: 1600px;
     height: 700px;
 }
 
@@ -231,6 +231,22 @@ th, td {
 #downtimesReport {
     border: 2px solid #818182;
     border-radius: 15px;
-    width: 650px;
+    width: 950px;
     height: 700px;
+}
+
+#showCurrentDay {
+    display: flex;
+}
+
+#showPrevDay {
+    display: flex;
+}
+
+#showCurrentShift {
+    display: flex;
+}
+
+#showCurrentDay {
+    display: flex;
 }

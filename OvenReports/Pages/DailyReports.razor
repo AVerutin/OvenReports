@@ -62,25 +62,25 @@
                         @foreach (DailyReport item in _reportList)
                         {
                             <tr style="height: 63px;">
-                                <td style="width: 190px;">
+                                <td class="align-middle" style="width: 190px;">
                                     @item.Date.ToString("d")
                                 </td>
-                                @* <td style="width: 190px;">
+                                @* <td class="align-middle" style="width: 190px;">
                                     @item.PeriodEnd.ToString("dd-MM-yyyy HH:mm")
                                 </td> *@
-                                <td style="width: 100px;">@item.CoilsCount</td>
-                                <td style="width: 100px;">@item.CoilsWeight</td>
-                                <td style="width: 150px;">@item.TotalCoils</td>
-                                <td style="width: 150px;">@item.TotalWeight</td>
+                                <td class="align-middle" style="width: 100px;">@item.CoilsCount</td>
+                                <td class="align-middle" style="width: 100px;">@item.CoilsWeight</td>
+                                <td class="align-middle" style="width: 150px;">@item.TotalCoils</td>
+                                <td class="align-middle" style="width: 150px;">@item.TotalWeight</td>
                                 @if(item.CoilsCount>0)
                                 {
-                                    <td style="width: 100px;">
+                                    <td class="align-middle" style="width: 100px;">
                                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.PeriodStart, item.PeriodEnd); })">&#10050;</button>
                                     </td>
                                 }
                                 else
                                 {
-                                    <td style="width: 100px;">&nbsp;</td>
+                                    <td class="align-middle" style="width: 100px;">&nbsp;</td>
                                 }
                             </tr>
                         }
@@ -129,16 +129,16 @@
                                         @foreach (MeltsForPeriod item in _meltsList)
                                         {
                                             <tr>
-                                                <td style="width: 190px;">
+                                                <td class="align-middle" style="width: 190px;">
                                                     @item.WeightingData.ToString("dd-MM-yyyy")
                                                 </td>
-                                                <td style="width: 190px;">
+                                                <td class="align-middle" style="width: 190px;">
                                                     @item.WeightingHourStart.ToString("D2"):00 &mdash; @item.WeightingHourFinish.ToString("D2"):00
                                                 </td>
-                                                <td style="width: 150px;">@item.CoilsCount</td>
-                                                <td style="width: 150px;">@item.WeightFact</td>
-                                                <td style="width: 150px;">@item.TotalCoilsCount</td>
-                                                <td style="width: 150px;">@item.TotalWeightFact</td>
+                                                <td class="align-middle" style="width: 150px;">@item.CoilsCount</td>
+                                                <td class="align-middle" style="width: 150px;">@item.WeightFact</td>
+                                                <td class="align-middle" style="width: 150px;">@item.TotalCoilsCount</td>
+                                                <td class="align-middle" style="width: 150px;">@item.TotalWeightFact</td>
                                             </tr>
                                         }
                                         </tbody>
