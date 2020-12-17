@@ -16,17 +16,14 @@ namespace OvenReports.Pages
         }
         
         private MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
+        private readonly Reports _reports = new Reports();
         private List<MeltsForPeriod> _meltsList = new List<MeltsForPeriod>();
         private List<CoilData> _selectedMelt = new List<CoilData>();
         private readonly DBConnection _db = new DBConnection();
         private string _showReport = "none";
         private MeltInfo _meltInfo;
         private Logger _logger;
-        
-        
-        // private List<ShiftReport> _reportList = new List<ShiftReport>();
-        // private Shift _shift = new Shift();
-        // private List<CoilData> _selectedMelt = new List<CoilData>();
+
         
         protected override void OnInitialized()
         {
@@ -37,8 +34,7 @@ namespace OvenReports.Pages
 
         private void Initialize()
         {
-            // _meltsPeriod.PeriodFinish = DateTime.Now; // GetCurrentTime();
-            // _meltsPeriod.PeriodStart = _shift.GetShiftStart(_meltsPeriod.PeriodFinish);
+
         }
 
         private void GetReportByPeriod()
@@ -56,7 +52,7 @@ namespace OvenReports.Pages
 
             while (shiftData.FinishTime <= periodFinish)
             {
-                List<MeltsForPeriod> melts = GetMelts(shiftData.StartTime, shiftData.FinishTime);
+                List<MeltsForPeriod> melts = _reports.GetMeltsByShift(shiftData.StartTime, shiftData.FinishTime);
 
                 foreach (MeltsForPeriod melt in melts)
                 {
@@ -78,7 +74,7 @@ namespace OvenReports.Pages
             Shift shift = new Shift();
             ShiftData currentShift = shift.GetCurrentShift();
 
-            _meltsList = GetMelts(currentShift.StartTime, currentShift.FinishTime);
+            _meltsList = _reports.GetMeltsByShift(currentShift.StartTime, currentShift.FinishTime);
             _showReport = "block";
             StateHasChanged();
         }
@@ -88,7 +84,7 @@ namespace OvenReports.Pages
             Shift shift = new Shift();
             ShiftData previousShift = shift.GetPreviousShift();
 
-            _meltsList = GetMelts(previousShift.StartTime, previousShift.FinishTime);
+            _meltsList = _reports.GetMeltsByShift(previousShift.StartTime, previousShift.FinishTime);
             _showReport = "block";
             StateHasChanged();
         }
@@ -97,7 +93,6 @@ namespace OvenReports.Pages
         {
             _selectedMelt = new List<CoilData>();
             string startTime = $"{date.Day}-{date.Month}-{date.Year} {hour}:00:00.000";
-            // string finishTime = $"{date.Day}-{date.Month}-{date.Year} {hour}:59:59.999";
             
             DateTime start = DateTime.Parse(startTime);
             DateTime finish = start.AddHours(1);
@@ -121,258 +116,6 @@ namespace OvenReports.Pages
                 }
                 _selectedMelt.Add(coil);
             }
-
-        }
-
-        /// <summary>
-        /// Рассчет данных по часам для выбранной смены
-        /// </summary>
-        /// <param name="start">Начало смены</param>
-        /// <param name="finish">Окончание смены</param>
-        /// <returns></returns>
-        private List<MeltsForPeriod> GetMelts(DateTime start, DateTime finish)
-        {
-            List<MeltsForPeriod> result = new List<MeltsForPeriod>();
-            List<MeltsForPeriod> sorted = new List<MeltsForPeriod>();
-            List<MeltsForPeriod> meltsList = new List<MeltsForPeriod>();
-            DateTime date = new DateTime();
-            DateTime now = new DateTime();
-            int startHour;
-            
-            try
-            {
-                meltsList = _db.GetHourlyCoilsByPeriod(start, finish);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(
-                    $"Не удалось получить список плавок за период с [{_meltsPeriod.PeriodStart}] по [{_meltsPeriod.PeriodFinish}] [{ex.Message}]");
-            }
-
-            if(meltsList.Count>0)
-            {
-                // Заполнение недостающих часов
-                int shiftNumber = 0;
-                if (start.Hour == 8)
-                {
-                    // Дневная смена
-                    startHour = 7;
-                    date = new DateTime();
-                    foreach (MeltsForPeriod item in meltsList)
-                    {
-                        if (shiftNumber == 0)
-                            shiftNumber = item.ShiftNumber;
-
-                        int diff = item.WeightingHourStart - startHour;
-                        if (diff > 1)
-                        {
-                            for (int i = startHour + 1; i < item.WeightingHourStart; i++)
-                            {
-                                MeltsForPeriod tmp = new MeltsForPeriod
-                                {
-                                    WeightingData = DateTime.Parse(
-                                        $"{item.WeightingData.Day}-{item.WeightingData.Month}-{item.WeightingData.Year} 08:00"),
-                                    WeightingHourStart = i,
-                                    WeightingHourFinish = i + 1,
-                                    ShiftNumber = shiftNumber == 0 ? item.ShiftNumber : shiftNumber
-                                };
-                                sorted.Add(tmp);
-                            }
-                        }
-                        
-                        startHour = item.WeightingHourStart;
-                        shiftNumber = item.ShiftNumber;
-                        date = item.WeightingData;
-                        sorted.Add(item);
-                    }
-
-                    DateTime today = DateTime.Now;
-                    int finishHour = date.Date == today.Date ? today.Hour : 19;
-                    
-                    if (startHour < finishHour)
-                    {
-                        for (int i = startHour + 1; i <= finishHour; i++)
-                        {
-                            MeltsForPeriod tmp = new MeltsForPeriod
-                            {
-                                WeightingData = DateTime.Parse(
-                                    $"{date.Day}-{date.Month}-{date.Year} 08:00"),
-                                WeightingHourStart = i,
-                                WeightingHourFinish = i + 1,
-                                ShiftNumber = shiftNumber
-                            };
-                            sorted.Add(tmp);
-                        }
-                    }
-                }
-                else
-                {
-                    // Ночная смена
-                    startHour = 19;
-                    date = new DateTime();
-
-                    foreach (MeltsForPeriod item in meltsList)
-                    {
-                        if (shiftNumber == 0)
-                            shiftNumber = item.ShiftNumber;
-
-                        if (item.WeightingHourStart >= 20)
-                        {
-                            // Первая половина смены
-                            int diff = item.WeightingHourStart - startHour;
-                            if (diff > 1)
-                            {
-                                for (int i = startHour + 1; i < item.WeightingHourStart; i++)
-                                {
-                                    MeltsForPeriod tmp = new MeltsForPeriod
-                                    {
-                                        WeightingData = DateTime.Parse(
-                                            $"{item.WeightingData.Day}-{item.WeightingData.Month}-{item.WeightingData.Year} 20:00"),
-                                        WeightingHourStart = i,
-                                        WeightingHourFinish = i + 1 == 24 ? 0 : i + 1,
-                                        ShiftNumber = shiftNumber == 0 ? item.ShiftNumber : shiftNumber
-                                    };
-                                    sorted.Add(tmp);
-                                }
-                            }
-                            
-                            // Заполнить недостающие часы для первой половины ночной смены
-                            // now = DateTime.Now;
-                            // if (now.Hour > 20)
-                            // {
-                            //     // Проверить последний заполненный час
-                            //     // и заполнить до текущего часа
-                            // }
-
-                            sorted.Add(item);
-                            startHour = item.WeightingHourStart;
-                            shiftNumber = item.ShiftNumber;
-                            date = item.WeightingData;
-                        }
-                        else
-                        {
-                            // Вторая половина смены
-                            if (startHour >= 19)
-                            {
-                                for (int i = startHour + 1; i < 24; i++)
-                                {
-                                    DateTime yesterday = item.WeightingData.AddDays(-1);
-                                    MeltsForPeriod tmp = new MeltsForPeriod
-                                    {
-                                        WeightingData = DateTime.Parse(
-                                            $"{yesterday.Day}-{yesterday.Month}-{yesterday.Year} 20:00"),
-                                        WeightingHourStart = i,
-                                        WeightingHourFinish = i + 1 == 24 ? 0 : i + 1,
-                                        ShiftNumber = shiftNumber
-                                    };
-                                    sorted.Add(tmp);
-                                }
-
-                                startHour = -1;
-                            }
-                            else
-                            {
-                                if (startHour > 7)
-                                {
-                                    startHour = -1;
-                                }
-                            }
-
-                            // Заполнить недостающие часы
-                            int diff = item.WeightingHourStart - startHour;
-                            if (diff > 1)
-                            {
-                                for (int i = startHour + 1; i < item.WeightingHourStart; i++)
-                                {
-                                    MeltsForPeriod tmp = new MeltsForPeriod
-                                    {
-                                        WeightingData = DateTime.Parse(
-                                            $"{item.WeightingData.Day}-{item.WeightingData.Month}-{item.WeightingData.Year} 20:00"),
-                                        WeightingHourStart = i,
-                                        WeightingHourFinish = i + 1 == 24 ? 0 : i + 1,
-                                        ShiftNumber = shiftNumber == 0 ? item.ShiftNumber : shiftNumber
-                                    };
-                                    sorted.Add(tmp);
-                                }
-                            }
-                            
-                            // Заполнить недостающие часы для второй половины текущей смены
-                            // now = DateTime.Now;
-                            // if (now.Hour < 8)
-                            // {
-                            //     // Проверить последний заполненный час
-                            //     // и заполнить до текущего часа
-                            // }
-
-                            sorted.Add(item);
-
-                            startHour = item.WeightingHourStart;
-                            shiftNumber = item.ShiftNumber;
-                            date = item.WeightingData;
-                        }
-                    }
-
-                    if (startHour >= 20)
-                    {
-                        for (int i = startHour + 1; i < 24; i++)
-                        {
-                            MeltsForPeriod tmp = new MeltsForPeriod
-                            {
-                                WeightingData = DateTime.Parse(
-                                    $"{date.Day}-{date.Month}-{date.Year} 20:00"),
-                                WeightingHourStart = i,
-                                WeightingHourFinish = i + 1 == 24 ? 0 : i + 1,
-                                ShiftNumber = shiftNumber
-                            };
-                            sorted.Add(tmp);
-                        }
-
-                        startHour = -1;
-                    }
-
-                    if (startHour < 7)
-                    {
-                        for (int i = startHour + 1; i <= 7; i++)
-                        {
-                            MeltsForPeriod tmp = new MeltsForPeriod
-                            {
-                                WeightingData = DateTime.Parse(
-                                    $"{date.Day}-{date.Month}-{date.Year} 20:00"),
-                                WeightingHourStart = i,
-                                WeightingHourFinish = i + 1 == 24 ? 0 : i + 1,
-                                ShiftNumber = shiftNumber
-                            };
-                            sorted.Add(tmp);
-                        }
-                    }
-                }
-
-                int totalCoilsCount = 0;
-                int totalWeightFact = 0;
-
-                foreach (MeltsForPeriod melt in sorted)
-                {
-                    if (melt.ShiftNumber > 0)
-                    {
-                        totalCoilsCount += melt.CoilsCount;
-                        totalWeightFact += melt.WeightFact;
-
-                        melt.TotalCoilsCount = totalCoilsCount;
-                        melt.TotalWeightFact = totalWeightFact;
-
-                        if (melt.WeightingHourFinish == 24)
-                            melt.WeightingHourFinish = 0;
-                    }
-                    else
-                    {
-                        totalCoilsCount = 0;
-                        totalWeightFact = 0;
-                    }
-
-                    result.Add(melt);
-                }
-            }
-            return result;
         }
     }
 }

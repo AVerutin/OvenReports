@@ -58,20 +58,33 @@
                         <tbody>
                         @foreach (DownTime item in _downTimes)
                         {
-                            <tr>
-                                <td class="align-middle" style="width: 190px;">@item.TimeStart.ToString("dd-MM-yyyy HH:mm:ss")</td>
-                                @if (item.TimeFinish == DateTime.MinValue)
-                                {
-                                    <td class="align-middle" style="width: 190px;">&mdash;</td>
-                                }
-                                else
-                                {
-                                    <td class="align-middle" style="width: 190px;">@item.TimeFinish.ToString("dd-MM-yyyy HH:mm:ss")</td>
-                                }
-                                <td class="align-middle" style="width: 150px;">@item.TimeDuration.ToString(@"hh\:mm\:ss")</td>
-                                <td class="align-middle" style="width: 150px;">@item.DurationTotal.ToString(@"hh\:mm\:ss")</td>
-                                <td class="align-middle" style="width: 250px;">@item.Comment</td>
-                            </tr>
+                            if (item.TimeStart == DateTime.MinValue)
+                            {
+                                <tr>
+                                    <td class="align-middle" style="width: 190px;">&nbsp;</td>
+                                    <td class="align-middle" style="width: 190px;">&nbsp;</td>
+                                    <td class="align-middle" style="width: 150px;">&nbsp;</td>
+                                    <td class="align-middle" style="width: 150px;">&nbsp;</td>
+                                    <td class="align-middle" style="width: 250px;">&nbsp;</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td class="align-middle" style="width: 190px;">@item.TimeStart.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                    @if (item.TimeFinish == DateTime.MinValue)
+                                    {
+                                        <td class="align-middle" style="width: 190px;">&mdash;</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="align-middle" style="width: 190px;">@item.TimeFinish.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                    }
+                                    <td class="align-middle" style="width: 150px;">@item.TimeDuration.ToString(@"hh\:mm\:ss")</td>
+                                    <td class="align-middle" style="width: 150px;">@item.DurationTotal.ToString(@"hh\:mm\:ss")</td>
+                                    <td class="align-middle" style="width: 250px;">@item.Comment</td>
+                                </tr>
+                            }
                         }
                         </tbody>
                     </table>

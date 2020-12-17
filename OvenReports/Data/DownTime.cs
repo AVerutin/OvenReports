@@ -12,8 +12,8 @@ namespace OvenReports.Data
 
         public DownTime()
         {
-            TimeStart = new DateTime();
-            TimeFinish = new DateTime();
+            TimeStart = DateTime.MinValue;
+            TimeFinish = DateTime.MinValue;
             TimeDuration = new TimeSpan();
             DurationTotal = new TimeSpan();
             Comment = default;

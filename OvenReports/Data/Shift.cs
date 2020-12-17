@@ -4,12 +4,35 @@ namespace OvenReports.Data
 {
     public class Shift
     {
+        public DateTime ShiftStart { get; set; }
+        public DateTime ShiftFinish { get; set; }
+        public int ShiftNumber { get; set; }
+        public int ShiftCount { get; set; }
+
+        public Shift()
+        {
+            ShiftStart = DateTime.MinValue;
+            ShiftFinish = DateTime.MinValue;
+            ShiftNumber = 0;
+            ShiftCount = 0;
+        }
+
+        private int GetShiftCount(DateTime date)
+        {
+            DateTime startDate = DateTime.Parse("2020-01-01 08:00:00");
+        
+            TimeSpan dateInterval = date - startDate;
+            int shiftIndex = (int)(dateInterval.TotalHours / 12) % 8;
+
+            return shiftIndex;
+        }
+        
         /// <summary>
         /// Получить номер бригады по дате и времени работы
         /// </summary>
         /// <param name="date">Дата и время работы</param>
         /// <returns>Номер бригады</returns>
-        public int GetShiftNumber(DateTime date)
+        private int GetShiftNumber(DateTime date)
         {
             int[] shifts = {1, 4, 2, 1, 3, 2, 4, 3};
             DateTime startDate = DateTime.Parse("2020-01-01 08:00:00");
@@ -47,6 +70,8 @@ namespace OvenReports.Data
         public int GetPreviousShiftNumber()
         {
             int prev = GetShiftNumber(DateTime.Now.AddHours(-12));
+            ShiftNumber = prev;
+            
             return prev;
         }
 
@@ -57,10 +82,18 @@ namespace OvenReports.Data
         /// <returns>Данные о бригаде</returns>
         public ShiftData GetShiftByDate(DateTime date)
         {
-            ShiftData shiftData = new ShiftData();
-            shiftData.Number = GetShiftNumber(date);
-            shiftData.StartTime = GetShiftStart(date);
-            shiftData.FinishTime = GetShiftFinish(date);
+            ShiftNumber = GetShiftNumber(date);
+            ShiftCount = GetShiftCount(date);
+            ShiftStart = GetShiftStart(date);
+            ShiftFinish = GetShiftFinish(date);
+
+            ShiftData shiftData = new ShiftData
+            {
+                Count = ShiftCount, 
+                Number = ShiftNumber, 
+                StartTime = ShiftStart, 
+                FinishTime = ShiftFinish
+            };
 
             return shiftData;
         }
@@ -72,10 +105,18 @@ namespace OvenReports.Data
         public ShiftData GetCurrentShift()
         {
             DateTime date = DateTime.Now;
-            ShiftData shiftData = new ShiftData();
-            shiftData.Number = GetShiftNumber(date);
-            shiftData.StartTime = GetShiftStart(date);
-            shiftData.FinishTime = GetShiftFinish(date);
+            ShiftNumber = GetShiftNumber(date);
+            ShiftCount = GetShiftCount(date);
+            ShiftStart = GetShiftStart(date);
+            ShiftFinish = GetShiftFinish(date);
+
+            ShiftData shiftData = new ShiftData
+            {
+                Count = ShiftCount, 
+                Number = ShiftNumber, 
+                StartTime = ShiftStart, 
+                FinishTime = ShiftFinish
+            };
 
             return shiftData;
         }
@@ -87,6 +128,11 @@ namespace OvenReports.Data
         public ShiftData GetPreviousShift()
         {
             ShiftData prev = GetShiftByDate(DateTime.Now.AddHours(-12));
+            ShiftCount = prev.Count;
+            ShiftNumber = prev.Number;
+            ShiftStart = prev.StartTime;
+            ShiftFinish = prev.FinishTime;
+            
             return prev;
         }
         
@@ -95,7 +141,7 @@ namespace OvenReports.Data
         /// </summary>
         /// <param name="currentTime"></param>
         /// <returns></returns>
-        public DateTime GetShiftStart(DateTime currentTime)
+        public static DateTime GetShiftStart(DateTime currentTime)
         {
             string startShift;
             
@@ -123,7 +169,7 @@ namespace OvenReports.Data
             return result;
         }
 
-        public DateTime GetShiftFinish(DateTime currentTime)
+        public static DateTime GetShiftFinish(DateTime currentTime)
         {
             DateTime result;
 
