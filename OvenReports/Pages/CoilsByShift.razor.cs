@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using OvenReports.Data;
-using NLog;
 
 namespace OvenReports.Pages
 {
@@ -9,26 +8,20 @@ namespace OvenReports.Pages
     {
         private struct MeltInfo
         {
-            public string MeltNumber;
-            public double Diameter;
             public DateTime StartPeriod;
             public DateTime FinishPeriod;
         }
         
-        private MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
+        private readonly MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
         private readonly Reports _reports = new Reports();
         private List<MeltsForPeriod> _meltsList = new List<MeltsForPeriod>();
         private List<CoilData> _selectedMelt = new List<CoilData>();
-        private readonly DBConnection _db = new DBConnection();
+        private readonly DbConnection _db = new DbConnection();
         private string _showReport = "none";
         private MeltInfo _meltInfo;
-        private Logger _logger;
-
         
         protected override void OnInitialized()
         {
-            _logger = LogManager.GetCurrentClassLogger();
-            _logger.Info("Запущен отчет по бунтам");
             Initialize();
         }
 
@@ -37,6 +30,9 @@ namespace OvenReports.Pages
 
         }
 
+        /// <summary>
+        /// Сформировать отчет за период
+        /// </summary>
         private void GetReportByPeriod()
         {
             DateTime rangeStart = _meltsPeriod.PeriodStart.AddDays(-1);
@@ -46,8 +42,9 @@ namespace OvenReports.Pages
             DateTime periodStart = DateTime.Parse(timeStart);
             DateTime periodFinish = DateTime.Parse(timeFinish);
             
+            // Получение данных по смене
             Shift shift = new Shift();
-            ShiftData shiftData = shift.GetShiftByDate(periodStart);
+            ShiftData shiftData = shift.GetShiftByDate(periodStart); 
             _meltsList = new List<MeltsForPeriod>();
 
             while (shiftData.FinishTime <= periodFinish)
@@ -69,8 +66,12 @@ namespace OvenReports.Pages
             StateHasChanged();
         }
 
+        /// <summary>
+        /// Сформировать отчет по текущей смене
+        /// </summary>
         private void GetReportCurrentShift()
         {
+            // Получить данные по текущей смене
             Shift shift = new Shift();
             ShiftData currentShift = shift.GetCurrentShift();
 
@@ -79,8 +80,12 @@ namespace OvenReports.Pages
             StateHasChanged();
         }
 
+        /// <summary>
+        /// Сформировать отчет по предыдущей смене
+        /// </summary>
         private void GetReportByPreviousShift()
         {
+            // Получить данные по предыдущей смене
             Shift shift = new Shift();
             ShiftData previousShift = shift.GetPreviousShift();
 
@@ -89,7 +94,12 @@ namespace OvenReports.Pages
             StateHasChanged();
         }
 
-        private void PrepareCoils(DateTime date, int hour)
+        /// <summary>
+        /// Получить список бунтов за указанный час
+        /// </summary>
+        /// <param name="date">Дата</param>
+        /// <param name="hour">Час</param>
+        private void GetPrepareCoils(DateTime date, int hour)
         {
             _selectedMelt = new List<CoilData>();
             string startTime = $"{date.Day}-{date.Month}-{date.Year} {hour}:00:00.000";

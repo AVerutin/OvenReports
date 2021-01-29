@@ -1,0 +1,16 @@
+Выделение идентификатора посада из строки записи лога
+
+-- Чтение параметра из логов
+SELECT
+	id, log_date, log_text
+FROM 
+	mts.logs where log_date >= '2020-12-31 20:00:00'-- and log_date <= now()
+	-- and upper(substr(log_text, 81, 6)) like upper('%ВЕС ФАКТИЧЕСКИЙ%') -- поиск по вхождению
+	and upper(log_text) like upper('%Количество заготовок%') -- поиск по вхождению
+	and upper(log_text) not like upper('%NULL%') -- поиск по вхождению
+ORDER BY id DESC; -- в порядке убывания (последние сообщения вверху)
+
+string meltNo_1 = _configuration.MillConfigUnit.Name.Trim()
+	.Substring(_configuration.MillConfigUnit.Name.Trim().Length - 7, 7);
+string meltNo_2 = _configuration.MillConfigUnit.Comment.Trim()
+	.Substring(_configuration.MillConfigUnit.Comment.Trim().Length - 7, 7);

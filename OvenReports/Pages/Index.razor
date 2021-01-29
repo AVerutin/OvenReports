@@ -82,7 +82,7 @@
                                 <td class="align-middle" style="width: 90px;">@item.Weighted</td>
                                 <td class="align-middle" style="width: 90px;">@item.WeightReal</td>
                                 <td class="align-middle" style="width: 90px;">
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.MeltNumber, item.Diameter); })">&#10050;</button>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { GetPrepareCoils(item.MeltNumber, item.Diameter); })">&#10050;</button>
                                 </td>
                             </tr>
                         }

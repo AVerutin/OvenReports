@@ -75,7 +75,7 @@
                                 @if (item.CoilsCount > 0)
                                 {
                                     <td class="align-middle" style="width: 100px;">
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { PrepareCoils(item.PeriodStart, item.PeriodEnd); })">&#10050;</button>
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { GetPrepareCoils(item.PeriodStart, item.PeriodEnd); })">&#10050;</button>
                                     </td>
                                 }
                                 else

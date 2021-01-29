@@ -7,13 +7,13 @@ namespace OvenReports.Data
     public class Reports
     {
         private readonly Logger _logger;
-        private readonly DBConnection _db;
+        private readonly DbConnection _db;
         private readonly Shift _shift;
         
         public Reports()
         {
             _logger = LogManager.GetCurrentClassLogger();
-            _db = new DBConnection();
+            _db = new DbConnection();
             _shift = new Shift();
         }
 
@@ -99,22 +99,24 @@ namespace OvenReports.Data
 
             foreach (MeltsList melt in melts)
             {
-                LandingData item = new LandingData();
-                item.MeltNumber = melt.MeltNumber;
-                item.ProductProfile = melt.ProductProfile;
-                item.Diameter = melt.Diameter;
-                item.FirstWeighting = melt.PeriodStart;
-                item.LastWeighting = melt.PeriodFinish;
-                item.SteelMark = melt.SteelMark;
-                item.IngotProfile = melt.IngotProfile;
-                item.IngotsCount = melt.IngotsCount;
-                item.IngotLength = melt.IngotLength;
-                item.Standart = melt.Standart;
-                item.ProductCode = melt.ProductCode;
-                item.Customer = melt.Customer;
-                item.Weighted = melt.CoilsCount;
-                item.WeightReal = melt.TotalWeight;
-                
+                LandingData item = new LandingData
+                {
+                    MeltNumber = melt.MeltNumber,
+                    ProductProfile = melt.ProductProfile,
+                    Diameter = melt.Diameter,
+                    FirstWeighting = melt.PeriodStart,
+                    LastWeighting = melt.PeriodFinish,
+                    SteelMark = melt.SteelMark,
+                    IngotProfile = melt.IngotProfile,
+                    IngotsCount = melt.IngotsCount,
+                    IngotLength = melt.IngotLength,
+                    Standart = melt.Standart,
+                    ProductCode = melt.ProductCode,
+                    Customer = melt.Customer,
+                    Weighted = melt.CoilsCount,
+                    WeightReal = melt.TotalWeight
+                };
+
                 meltsList.Add(item);
             }
 
@@ -1141,5 +1143,19 @@ namespace OvenReports.Data
 
             return report;
         }
+
+        /// <summary>
+        /// Получить сменный рапорт производства
+        /// </summary>
+        /// <param name="periodStart">Начало периода</param>
+        /// <param name="periodFinish">Конец периода</param>
+        /// <returns>Сменный отчет по производству</returns>
+        private List<ReportByShift> GetReportByShift(DateTime periodStart, DateTime periodFinish)
+        {
+            List<ReportByShift> result = new List<ReportByShift>();
+
+            return result;
+        }
+
     }
 }

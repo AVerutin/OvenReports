@@ -1,0 +1,242 @@
+﻿~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция добавления ЕУ в посад:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+public.f_add_unit ( <p_id> numeric )
+===============================
+
+Добавляет в конец очереди заготовку к плавке на посаде
+
+    <p_id> - идентификатор посада
+    <return> - идентификатор добавленной единицы учета
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция удаления последней ЕУ из посада:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+public.f_delete_unit ( <p_id> numeric )
+==================================
+
+Удаляет последнюю заготовку из посада (плавки). Если удаляется
+последняя заготовка, то удаляется вся плавка
+
+    <p_id> - идентификатор посада
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция добавления плавки в очередь
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+public.f_create_queue(
+    <p_melt>        text,       -- номер плавки
+    <p_section>     text,       -- сечение заготовки
+    <p_steel_grade> text,       -- марка стали
+    <p_count>       numeric,    -- количество заготовок
+    <p_weight_all>  numeric,    -- теоретический вес всех заготовок на посаде
+    <p_weight_one>  numeric,    -- теоретический вес одной заготовки
+    <p_length>      numeric,    -- длина одной заготовки
+    <p_gost>        text,       -- наименование стандарта
+    <p_diameter>    numeric,    -- диаметр профиля готовой продукции
+    <p_customer>    text,       -- заказчик готовой продукции
+    <p_shift>       text,       -- номер бригады, установившей плавку в очередь на посад
+    <p_class>       text,       -- класс готовой продукции
+    <p_prod_code>   numeric,    -- код продукции
+    <p_profile>     text,       -- тип профиля готовой продукции (круг или арматура)
+//  <p_specific>    text,       -- наименование спецификации
+//  <p_lot>         numeric,    -- номер лота
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция получения списка плавок в очереди на посаде
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+select * from public.f_get_queue ()
+==================================
+
+    returns TABLE
+            (
+                <c_id_posad>     numeric,
+                <c_melt>         text,
+                <c_steel_grade>  text,
+                <c_section>      text,
+                <c_count>        numeric,
+                <c_weight_all>   numeric,
+                <c_weight_one>   numeric,
+                <c_length>       numeric,
+                <c_gost>         text,
+                <c_diameter>     numeric,
+                <c_customer>     text,
+                <c_shift>        text,
+                <c_class>        text,
+                <c_prod_code>    numeric,
+                <c_profile>      text,
+                <c_count_weight> numeric
+            )
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция удаления плавки из очереди
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+f_delete_from_from_queue ( <p_id> numeric )
+==========================================
+
+    <p_id> - идентификатор плавки
+
+Удаляет плавку из очереди, при условии, что плавка не содержит бунтов с
+назначенным весом
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Процедура для изменения значений параметров плавки
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+p_set_param ( <p_unit_id> numeric, <p_param_id> numeric, <p_value> text )
+=========================================================================
+
+Список идентификаторов параметров:
+    10_000_001	Номер плавки                                                                                        
+    10_000_002	Марка стали                                                                                         
+    10_000_003	Сечение                                                                                             
+    10_000_004	Количество заготовок                                                                                
+    10_000_005	Вес заготовок                                                                                       
+    10_000_006	Вес заготовки                                                                                       
+    10_000_007	Длина заготовки                                                                                     
+    10_000_009	ГОСТ                                                                                                
+    10_000_010	Диаметр                                                                                             
+    10_000_011	Заказчик                                                                                            
+    10_000_012	Смена                                                                                               
+    10_000_013	Класс                                                                                               
+    10_000_014	Вес фактический                                                                                     
+    10_000_015	Код продукта                                                                                        
+    10_000_016	Вес бунта                                                                                           
+    10_000_017	Бригада                                                                                             
+    10_000_018	Профиль                                                                                             
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция получения списка плавок в очереди на посаде
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+f_get_queue ()
+==============
+
+    returns TABLE
+    (
+        <c_id_posad>        numeric, 
+        <c_melt>            text, 
+        <c_steel_grade>     text, 
+        <c_section>         text, 
+        <c_count>           numeric, 
+        <c_weight_all>      numeric, 
+        <c_weight_one>      numeric, 
+        <c_length>          numeric, 
+        <c_gost>            text, 
+        <c_diameter>        numeric, 
+        <c_customer>        text, 
+        <c_shift>           text, 
+        <c_class>           text, 
+        <c_prod_code>       numeric, 
+        <c_profile>         text, 
+        <c_count_weight>    numeric
+    )
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция получения списка очереди на взвешивание (бунты без веса)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+f_get_queue_coils ()
+===================
+
+    returns TABLE
+    (
+        <c_id_posad>        numeric, 
+        <c_melt>            text, 
+        <c_steel_grade>     text, 
+        <c_section>         text, 
+        <c_count>           numeric, 
+        <c_weight_all>      numeric, 
+        <c_weight_one>      numeric, 
+        <c_length>          numeric, 
+        <c_gost>            text, 
+        <c_profile>         text, 
+        <c_diameter>        numeric, 
+        <c_customer>        text, 
+        <c_shift>           text, 
+        <c_class>           text, 
+        <c_prod_code>       numeric, 
+        <c_id_coil>         numeric, 
+        <c_pos>             numeric, 
+        <c_date_reg>        timestamp without time zone
+    )
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функция получения списка всех бунтов по номеру плавки
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+f_get_queue_coils ( <p_melt> text )
+==============================
+
+    returns TABLE
+    (
+        <c_id_posad>        numeric, 
+        <c_melt>            text, 
+        <c_steel_grade>     text, 
+        <c_section>         text, 
+        <c_count>           numeric, 
+        <c_weight_all>      numeric, 
+        <c_weight_one>      numeric, 
+        <c_length>          numeric, 
+        <c_gost>            text, 
+        <c_profile>         text, 
+        <c_diameter>        numeric, 
+        <c_customer>        text, 
+        <c_shift>           text, 
+        <c_class>           text, 
+        <c_prod_code>       numeric, 
+        <c_id_coil>         numeric, 
+        <c_pos>             numeric, 
+        <c_num_coil>        numeric, 
+        <c_weight_fact>     numeric, 
+        <c_shift_number>    text, 
+        <c_date_reg>        timestamp without time zone, 
+        <c_date_weight>     timestamp without time zone
+    )
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Функци получения списка бунтов по плавке для возврата на провеску
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+f_get_queue_coils ( <p_melt> text, <p_diameter> numeric )
+==================================================
+
+    returns TABLE
+    (
+        <c_id_posad>        numeric, 
+        <c_melt>            text, 
+        <c_steel_grade>     text, 
+        <c_section>         text, 
+        <c_count>           numeric, 
+        <c_weight_all>      numeric, 
+        <c_weight_one>      numeric, 
+        <c_length>          numeric, 
+        <c_gost>            text, 
+        <c_profile>         text, 
+        <c_diameter>        numeric, 
+        <c_customer>        text, 
+        <c_shift>           text, 
+        <c_class>           text, 
+        <c_prod_code>       numeric, 
+        <c_id_coil>         numeric, 
+        <c_pos>             numeric, 
+        <c_num_coil>        numeric, 
+        <c_weight_fact>     numeric, 
+        <c_shift_number>    text, 
+        <c_date_reg>        timestamp without time zone, 
+        <c_date_weight>     timestamp without time zone
+    )
+

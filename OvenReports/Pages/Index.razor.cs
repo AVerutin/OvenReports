@@ -16,7 +16,7 @@ namespace OvenReports.Pages
         private readonly Reports _reports = new Reports();
         private List<LandingData> _meltsList = new List<LandingData>();
         
-        private readonly DBConnection _db = new DBConnection();
+        private readonly DbConnection _db = new DbConnection();
         private List<CoilData> _selectedMelt = new List<CoilData>();
         private string _showReport = "none";
         private MeltInfo _meltInfo;
@@ -34,12 +34,9 @@ namespace OvenReports.Pages
         private void GetMelt()
         {
             string meltNumber = _meltsPeriod.MeltNumber;
-            
-            
             if (!string.IsNullOrEmpty(meltNumber))
             {
                 _meltsList = _reports.GetMelt(meltNumber);
-
                 _showReport = "block";
                 StateHasChanged();
             }            
@@ -56,18 +53,21 @@ namespace OvenReports.Pages
             finish = DateTime.Parse(dateFinish);
 
             _meltsList = _reports.GetMelts(start, finish);
-            
             _showReport = "block";
             StateHasChanged();
         }
 
-        private void PrepareCoils(string meltNumber, double diameter)
+        /// <summary>
+        /// Получить список бунтов для выбранной плавки
+        /// </summary>
+        /// <param name="meltNumber">Номер плавки</param>
+        /// <param name="diameter">Диаметр прокатываемого профиля</param>
+        private void GetPrepareCoils(string meltNumber, double diameter)
         {
             // Получать список бунтов по запросу из БД
             _selectedMelt = _db.GetCoilsByMelt(meltNumber, diameter, false);
             _meltInfo.MeltNumber = _selectedMelt[0].MeltNumber;
             _meltInfo.Diameter = _selectedMelt[0].Diameter;
-
         }
     }
 }

@@ -250,3 +250,17 @@ th, td {
 #showCurrentDay {
     display: flex;
 }
+
+#ingotsWeight {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: 1580px;
+    height: 700px;
+}
+
+#viewIngot {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: 720px;
+    height: 700px;
+}

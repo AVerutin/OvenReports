@@ -15,7 +15,7 @@ namespace OvenReports.Pages
         private readonly MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
         private List<MeltsForPeriod> _meltsList = new List<MeltsForPeriod>();
         private readonly Reports _reports = new Reports();
-        private readonly DBConnection _db = new DBConnection();
+        private readonly DbConnection _db = new DbConnection();
         private List<CoilData> _selectedMelt = new List<CoilData>();
         private string _showReport = "none";
         private MeltInfo _meltInfo;
@@ -30,6 +30,9 @@ namespace OvenReports.Pages
 
         }
 
+        /// <summary>
+        /// Получить список плавок за день
+        /// </summary>
         private void GetMeltsList()
         {
             string start =
@@ -42,7 +45,12 @@ namespace OvenReports.Pages
             StateHasChanged();
         }
 
-        private void PrepareCoils(DateTime date, int hour)
+        /// <summary>
+        /// Получить список бунтов за час
+        /// </summary>
+        /// <param name="date">Дата</param>
+        /// <param name="hour"Час></param>
+        private void GetPrepareCoils(DateTime date, int hour)
         {
             _selectedMelt = new List<CoilData>();
             string startTime = $"{date.Day}-{date.Month}-{date.Year} {hour}:00:00";
@@ -71,6 +79,9 @@ namespace OvenReports.Pages
             }
         }
 
+        /// <summary>
+        /// Получить список плавок за текущие сутки
+        /// </summary>
         private void GetCurrentDay()
         {
             DateTime now = DateTime.Now;
@@ -78,11 +89,13 @@ namespace OvenReports.Pages
             string todayFinish = $"{now.Day}-{now.Month}-{now.Year} 23:59:59.999";
             
             _meltsList = _reports.GetMeltsByDay(DateTime.Parse(todayStart), DateTime.Parse(todayFinish));
-            
             _showReport = "block";
             StateHasChanged();
         }
 
+        /// <summary>
+        /// Получить список плавок за предыдущие сутки
+        /// </summary>
         private void GetPrevDay()
         {
             DateTime yesterday = DateTime.Now.AddDays(-1);
@@ -90,7 +103,6 @@ namespace OvenReports.Pages
             string yesterdayFinish = $"{yesterday.Day}-{yesterday.Month}-{yesterday.Year} 23:59:59.999";
             
             _meltsList = _reports.GetMeltsByDay(DateTime.Parse(yesterdayStart), DateTime.Parse(yesterdayFinish));
-            
             _showReport = "block";
             StateHasChanged();
         }

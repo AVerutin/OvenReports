@@ -75,7 +75,7 @@
                                     <td class="align-middle" style="width: 150px;">@item.TotalCoilsCount</td>
                                     <td class="align-middle" style="width: 150px;">@item.TotalWeightFact</td>
                                     <td class="align-middle" style="width: 100px;">
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => PrepareCoils(item.WeightingData, item.WeightingHourStart))">&#10050;</button>
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => GetPrepareCoils(item.WeightingData, item.WeightingHourStart))">&#10050;</button>
                                     </td>
                                 </tr>
                             }

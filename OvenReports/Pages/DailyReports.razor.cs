@@ -13,11 +13,11 @@ namespace OvenReports.Pages
             public DateTime FinishDate;
         }
         
-        private MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
+        private readonly MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
         private readonly Reports _reports = new Reports();
         private List<DailyReport> _reportList = new List<DailyReport>();
         private List<MeltsForPeriod> _meltsList = new List<MeltsForPeriod>();
-        private DBConnection _db = new DBConnection();
+        private readonly DbConnection _db = new DbConnection();
         private string _showReport = "none";
         private MeltInfo _meltInfo;
         private Logger _logger;
@@ -25,16 +25,16 @@ namespace OvenReports.Pages
         protected override void OnInitialized()
         {
             _logger = LogManager.GetCurrentClassLogger();
-            _logger.Info("Запущен отчет по бунтам");
             Initialize();
         }
 
         private void Initialize()
         {
-            // _meltsPeriod.PeriodFinish = DateTime.Now; // GetCurrentTime();
-            // _meltsPeriod.PeriodStart = _shift.GetShiftStart(_meltsPeriod.PeriodFinish);
         }
 
+        /// <summary>
+        /// Сформировать отчет за период
+        /// </summary>
         private void GetReportByPeriod()
         {
             DateTime periodStart = DateTime.Parse($"{_meltsPeriod.PeriodStart:d} 00:00:00.000");
@@ -146,7 +146,12 @@ namespace OvenReports.Pages
             StateHasChanged();
         }
 
-        private void PrepareCoils(DateTime start, DateTime finish)
+        /// <summary>
+        /// Получить данные по бунтам за выбранный период
+        /// </summary>
+        /// <param name="start">Начало периода</param>
+        /// <param name="finish">Конец периода</param>
+        private void GetPrepareCoils(DateTime start, DateTime finish)
         {
             DateTime periodStart = DateTime.Parse($"{start:d} 00:00:00.000");
             DateTime periodFinish = DateTime.Parse($"{finish:d} 23:59:59.999");

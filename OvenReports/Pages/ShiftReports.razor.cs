@@ -78,7 +78,7 @@ namespace OvenReports.Pages
         /// </summary>
         /// <param name="startPeriod">Начало смены</param>
         /// <param name="finishPeriod">Окончание смены</param>
-        private void PrepareCoils(DateTime startPeriod, DateTime finishPeriod)
+        private void GetPrepareCoils(DateTime startPeriod, DateTime finishPeriod)
         {
             _meltInfo.StartDate = startPeriod;
             _meltInfo.FinishDate = finishPeriod;

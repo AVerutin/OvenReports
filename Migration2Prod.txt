@@ -1,0 +1,775 @@
+create or replace function public.f_get_coils_period(p_start_date timestamp without time zone,
+                                          p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_id_posad      numeric,
+                c_melt          text,
+                c_id_coil       numeric,
+                c_melt_data     text,
+                c_weight_data   timestamp without time zone,
+                c_qtty_in_posad numeric,
+                c_num_in_posad  numeric,
+                c_weight_fact   numeric,
+                c_coil_number   text,
+                c_steel_mark    text,
+                c_section       text,
+                c_weight_total  numeric,
+                c_weight_one    numeric,
+                c_length        numeric,
+                c_standart      text,
+                c_profile       text,
+                c_diameter      numeric,
+                c_customer      text,
+                c_shift         text,
+                c_class         text,
+                c_product_code  text,
+                shift_number    text,
+                specification   text,
+                lot             numeric,
+                c_qtty_error    text,
+                c_weight_error  text
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT mts.f_unit_id_parent_recursive(t.unit_id, 1)                                      posad_id,    -- Идентификатор посада
+               max(case when p.param_id = 10000001 then p.value_s end)::text   as                melt_no,
+               t.unit_id                                                                         coil_id,     -- Идентификатор бунта ДТ
+               to_char(t.date_reg, 'DD-MM-YYYY HH:MI:SS')                                        melt_data,
+               -- to_char(t.date_close,'DD.MM.YYYY DD.MI.SS') date_close, -- дата без мс
+               date_close                                                                        weight_data,
+
+               max(case when p.param_id = 10000004 then p.value_n end)         as                qtty_in_posad,
+               t.pos                                                                             num_in_posad,
+               max(case when p1.param_id = 10000014 then p1.value_n end)       as                weight_fact, -- ЕУ
+               max(case when p1.param_id = 10000016 then p1.value_n end)::text as                coil_number, -- ЕУ
+
+               -- Далее Параметры посада
+               max(case when p.param_id = 10000002 then p.value_s end)::text   as                steel_mark,
+               max(case when p.param_id = 10000003 then p.value_s end)::text   as                section,
+               max(case when p.param_id = 10000005 then p.value_n end)         as                weight_total,
+               max(case when p.param_id = 10000006 then p.value_n end)         as                weight_one,
+               max(case when p.param_id = 10000007 then p.value_n end)         as                length,
+               max(case when p.param_id = 10000009 then p.value_s end)::text   as                standart,
+               max(case when p.param_id = 10000018 then p.value_s end)::text   as                profile,
+               max(case when p.param_id = 10000010 then p.value_n end)         as                diameter,
+               max(case when p.param_id = 10000011 then p.value_s end)::text   as                customer,
+               max(case when p.param_id = 10000012 then p.value_s end)::text   as                shift,
+               max(case when p.param_id = 10000013 then p.value_s end)::text   as                class,
+               max(case when p.param_id = 10000015 then p.value_n end)::text   as                product_code,
+               max(case when p.param_id = 10000017 then p.value_s end)::text   as                shift_number,
+               max(case when p.param_id = 10000019 then p.value_s end)::text   as                specification,
+               max(case when p.param_id = 10000020 then p.value_n end)         as                lot,
+               -- Проверки
+               -- Ошибка, если кол-во в посаде не совпадает с количеством в очереди
+               case
+                   when max(pos) over (partition by mts.f_unit_id_parent_recursive(t.unit_id, 1)) <>
+                        max(case when p.param_id = 10000004 then p.value_n end) then 'error' end qtty_error,
+               -- Ошибка, если к-во*на вес 1 штуки <> сумм. весу
+               case
+                   when max(case when p.param_id = 10000006 then p.value_n end) *
+                        max(case when p.param_id = 10000004 then p.value_n end) <>
+                        max(case when p.param_id = 10000005 then p.value_n end) then 'error' end weight_error
+        FROM mts.unit_tasks t
+                 join mts.units_relations r on t.unit_id = r.unit_id_child -- для связи ЕУ и посада
+                 left join mts.passport p1 on p1.unit_id = t.unit_id --  паспорт ЕУ из очереди
+                 join mts.passport p on p.unit_id = r.unit_id_parent -- паспорт посада
+            and node_id = 10000 -- ТУ Печать бирок
+        WHERE 1 = 1
+          -- and t.date_reg >= now() - interval '1 month' -- за последние 3 суток
+          -- and p.value_s = '2008996' -- фильтр по плавке
+          -- and date_close is not null -- закрыт интервал - штука провешана, есть вес и номер рулона
+          and date_close between p_start_date and p_finish_date
+        group by t.node_id, t.unit_id, t.pos, t.date_reg, t.date_close
+        order by t.date_reg, pos;
+END;
+$$;
+
+comment on function public.f_get_coils_period(timestamp, timestamp) is 'Список взвешенных бунтов за период';
+
+alter function public.f_get_coils_period(timestamp, timestamp) owner to mts;
+
+
+drop function public.f_get_all_queues();
+create or replace function public.f_get_all_queues()
+    returns TABLE
+            (
+                c_id_posad     numeric,
+                c_date_reg     timestamp without time zone,
+                c_melt         text,
+                c_steel_grade  text,
+                c_section      text,
+                c_count        numeric,
+                c_weight_all   numeric,
+                c_weight_one   numeric,
+                c_length       numeric,
+                c_gost         text,
+                c_diameter     numeric,
+                c_customer     text,
+                c_shift        text,
+                c_class        text,
+                c_prod_code    numeric,
+                c_profile      text,
+                c_count_weight numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT r.unit_id_parent                                                 c_id_posad,
+               u.date_reg                                                       c_date_reg,
+               max(case when p.param_id = 10000001 then p.value_s end)::text as c_melt,
+               max(case when p.param_id = 10000002 then p.value_s end)::text as c_steel_grade,
+               max(case when p.param_id = 10000003 then p.value_s end)::text as c_section,
+               max(case when p.param_id = 10000004 then p.value_n end)       as c_count,
+               max(case when p.param_id = 10000005 then p.value_n end)       as c_weight_all,
+               max(case when p.param_id = 10000006 then p.value_n end)       as c_weight_one,
+               max(case when p.param_id = 10000007 then p.value_n end)       as c_length,
+
+               max(case when p.param_id = 10000009 then p.value_s end)::text as c_gost,
+               max(case when p.param_id = 10000010 then p.value_n end)       as c_diameter,
+               max(case when p.param_id = 10000011 then p.value_s end)::text as c_customer,
+               max(case when p.param_id = 10000012 then p.value_s end)::text as c_shift,
+               max(case when p.param_id = 10000013 then p.value_s end)::text as c_class,
+               max(case when p.param_id = 10000015 then p.value_n end)       as c_prod_code,
+               max(case when p.param_id = 10000018 then p.value_s end)::text as c_profile,
+               (select count(distinct ps.unit_id)
+                from mts.passport ps
+                where ps.unit_id in (select * from mts.f_unit_id_child_recursive(r.unit_id_parent, 1))
+                  and ps.param_id = 10000014):: numeric                      as c_count_weight
+        FROM mts.unit_tasks t
+                 join mts.units_relations r on t.unit_id = r.unit_id_child --and r.unit_id_parent = 501734
+                 join mts.units u on u.id = r.unit_id_parent
+                 join mts.passport p on p.unit_id = r.unit_id_parent and p.project_id = 1 -- паспортные данные посада
+        WHERE t.project_id = 1
+          and t.node_id = 10000 -- печать бирок
+          -- and coalesce(u.date_reg, now() - interval '1 day') between p_begin and coalesce(p_end, now())
+          -- and c_melt = p_melt
+        GROUP BY r.unit_id_parent, u.date_reg
+        ORDER BY u.date_reg;
+end;
+$$;
+
+comment on function public.f_get_all_queues() is 'Очередь посадов на провеску за период';
+
+alter function public.f_get_all_queues() owner to mts;
+
+
+drop function public.f_get_queue_coils(text, numeric);
+create or replace function public.f_get_queue_coils(p_melt text, p_diameter numeric)
+    returns TABLE
+            (
+                c_id_posad      numeric,
+                c_melt          text,
+                c_steel_grade   text,
+                c_section       text,
+                c_count         numeric,
+                c_weight_all    numeric,
+                c_weight_one    numeric,
+                c_length        numeric,
+                c_gost          text,
+                c_profile       text,
+                c_diameter      numeric,
+                c_customer      text,
+                c_shift         text,
+                c_class         text,
+                c_prod_code     numeric,
+                c_id_coil       numeric,
+                c_pos           numeric,
+                c_num_coil      numeric,
+                c_weight_fact   numeric,
+                c_shift_number  text,
+                c_specification text,
+                c_lot           numeric,
+                c_date_reg      timestamp without time zone,
+                c_date_weight   timestamp without time zone
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT r.unit_id_parent                                                   c_id_posad,
+               max(case when p.param_id = 10000001 then p.value_s end)::text   as c_melt,
+               max(case when p.param_id = 10000002 then p.value_s end)::text   as c_steel_grade,
+               max(case when p.param_id = 10000003 then p.value_s end)::text   as c_section,
+               max(case when p.param_id = 10000004 then p.value_n end)         as c_count,
+               max(case when p.param_id = 10000005 then p.value_n end)         as c_weight_all,
+               max(case when p.param_id = 10000006 then p.value_n end)         as c_weight_one,
+               max(case when p.param_id = 10000007 then p.value_n end)         as c_length,
+               max(case when p.param_id = 10000009 then p.value_s end)::text   as c_gost,
+               max(case when p.param_id = 10000018 then p.value_s end)::text   as c_profile,
+               max(case when p.param_id = 10000010 then p.value_n end)         as c_diameter,
+               max(case when p.param_id = 10000011 then p.value_s end)::text   as c_customer,
+               max(case when p.param_id = 10000012 then p.value_s end)::text   as c_shift,
+               max(case when p.param_id = 10000013 then p.value_s end)::text   as c_class,
+               max(case when p.param_id = 10000015 then p.value_n end)         as c_prod_code,
+
+               -- Данные по бунтам
+               t.unit_id                                                          c_id_coil,  -- Идентификатор бунта ДТ
+               t.pos                                                           as c_pos,      -- позиция внутри посада
+               max(case when p1.param_id = 10000016 then p1.value_n end)       as c_num_coil, -- Номер бунта в разрезе плавка-диаметр
+               max(case when p1.param_id = 10000014 then p1.value_n end)       as c_weight_fact,
+               max(case when p1.param_id = 10000017 then p1.value_s end)::text as c_shift_number,
+               max(case when p1.param_id = 10000019 then p1.value_s end)::text as c_specification,
+               max(case when p1.param_id = 10000020 then p1.value_n end)       as c_lot,
+               t.date_reg::timestamp                                           as c_date_reg, -- Дата регистрации     	to_char(t.date_reg,'DD.MM.YYYY DD.MI.SS') ,
+               t.date_close::timestamp                                         as c_date_weight
+
+        FROM mts.unit_tasks t
+                 join mts.units_relations r on t.unit_id = r.unit_id_child
+                 join mts.passport p on p.unit_id = r.unit_id_parent and p.project_id = 1-- паспортные данные посада
+                 left join mts.passport p1 on p1.unit_id = t.unit_id and p1.project_id = 1 --  паспорт ЕУ из очереди
+                 join mts.passport p2 on p2.unit_id = r.unit_id_parent and p2.project_id = 1 and p2.param_id = 10000001
+                 join mts.passport p3 on p3.unit_id = r.unit_id_parent and p3.project_id = 1 and p3.param_id = 10000010
+        WHERE t.node_id = 10000      -- печать бирок
+          and date_close is not null --провешенные
+          and t.project_id = 1
+          --and t.date_reg >= now() - interval '1 day'
+          and p2.value_s = trim(p_melt)
+          and p3.value_n = p_diameter
+        GROUP BY r.unit_id_parent, t.unit_id, t.pos, t.date_reg, t.date_close
+        ORDER BY t.date_reg, t.pos;
+end;
+$$;
+
+comment on function public.f_get_queue_coils(text, numeric) is 'Очередь бунтов на провеску: все провешенные по плавке.
+Для возврата на провеску.';
+
+alter function public.f_get_queue_coils(text, numeric) owner to mts;
+
+drop function public.f_get_coils_period_hourly(timestamp, timestamp);
+create function public.f_get_coils_period_hourly(p_start_date timestamp without time zone,
+                                                 p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_weighting_data timestamp without time zone,
+                c_weighting_hour numeric,
+                c_coils          numeric,
+                c_weight_fact    numeric,
+                shift_number     numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        select (to_char(weight_data, 'DD-MM-YYYY'))::timestamp                                                        as date,
+               extract(hour from weight_data)::numeric                                                                as hour,
+               count(coil_id)::numeric                                                                                as coils,
+               sum(weight_fact)                                                                                       as weight_fact,
+               (((extract(epoch from weight_data - '01-01-2020 08:00:00'::timestamp))::integer / 3600) /
+                12)::numeric                                                                                          as shift_number
+        from (
+                 SELECT mts.f_unit_id_parent_recursive(t.unit_id, 1)                     posad_id,    -- Идентификатор посада
+                        max(case when p.param_id = 10000001 then p.value_s end)::text as melt_no,
+                        t.unit_id                                                        coil_id,     -- Идентификатор бунта ДТ
+                        date_close                                                       weight_data,
+                        max(case when p.param_id = 10000004 then p.value_n end)       as qtty_in_posad,
+                        max(case when p1.param_id = 10000014 then p1.value_n end)     as weight_fact, -- ЕУ
+
+                        -- Далее Параметры посада
+                        max(case when p.param_id = 10000002 then p.value_s end)::text as steel_mark,
+                        max(case when p.param_id = 10000003 then p.value_s end)::text as profile,
+                        max(case when p.param_id = 10000009 then p.value_s end)::text as standart,
+                        max(case when p.param_id = 10000010 then p.value_n end)       as diameter,
+                        max(case when p.param_id = 10000011 then p.value_s end)::text as customer
+                 FROM mts.unit_tasks t
+                          join mts.units_relations r on t.unit_id = r.unit_id_child -- для связи ЕУ и посада
+                          left join mts.passport p1 on p1.unit_id = t.unit_id --  паспорт ЕУ из очереди
+                          join mts.passport p on p.unit_id = r.unit_id_parent -- паспорт посада
+                     and node_id = 10000 -- ТУ Печать бирок
+                 WHERE date_close between p_start_date and p_finish_date
+                 group by t.node_id, t.unit_id, t.pos, t.date_reg, t.date_close
+                 order by t.date_reg, pos) detail
+        group by date,
+                 hour,
+                 shift_number
+        order by date, hour;
+END;
+$$;
+
+comment on function public.f_get_coils_period_hourly(timestamp, timestamp) is 'Получить список бунтов за период с группировкой по часам';
+
+alter function public.f_get_coils_period_hourly(timestamp, timestamp) owner to mts;
+
+
+
+drop function public.f_get_coils_period_hourly_detail(timestamp, timestamp);
+create or replace function public.f_get_coils_period_hourly_detail(p_start_date timestamp without time zone,
+                                                        p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_posad_id       numeric,
+                c_melt_no        text,
+                c_profile        text,
+                c_diameter       numeric,
+                c_shift_number   text,
+                c_specification  text,
+                c_lot            numeric,
+                c_coil           numeric,
+                c_weight_fact    numeric,
+                c_weighting_data timestamp without time zone
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        select posad_id,
+               melt_no,
+               profile,
+               diameter,
+               shift_number,
+               specification,
+               lot,
+               c_num_coil,
+               weight_fact,
+               weight_data
+        from (
+                 SELECT mts.f_unit_id_parent_recursive(t.unit_id, 1)                        posad_id,    -- Идентификатор посада
+                        max(case when p.param_id = 10000001 then p.value_s end)::text    as melt_no,
+                        max(case when p1.param_id = 10000016 then p1.value_n end)        as c_num_coil,  -- Идентификатор бунта ДТ
+                        date_close                                                          weight_data,
+                        max(case when p1.param_id = 10000014 then p1.value_n end)        as weight_fact, -- ЕУ
+                        max(case when p.param_id = 10000018 then p.value_s end)::text    as profile,
+                        max(case when p.param_id = 10000010 then p.value_n end)::numeric as diameter,
+                        max(case when p.param_id = 10000017 then p.value_s end)::text    as shift_number,
+                        max(case when p.param_id = 10000019 then p.value_s end)::text    as specification,
+                        max(case when p.param_id = 10000020 then p.value_n end)::numeric as lot
+                 FROM mts.unit_tasks t
+                          join mts.units_relations r on t.unit_id = r.unit_id_child -- для связи ЕУ и посада
+                          left join mts.passport p1 on p1.unit_id = t.unit_id --  паспорт ЕУ из очереди
+                          join mts.passport p on p.unit_id = r.unit_id_parent -- паспорт посада
+                     and node_id = 10000 -- ТУ Печать бирок
+                 WHERE date_close between p_start_date and p_finish_date
+                 group by t.node_id, t.unit_id, t.pos, t.date_reg, t.date_close
+                 order by t.date_reg, pos) detail
+
+        order by weight_data, melt_no;
+END;
+$$;
+
+comment on function public.f_get_coils_period_hourly_detail(timestamp, timestamp) is 'Получить список бунтов за период с группировкой по часам';
+
+alter function public.f_get_coils_period_hourly_detail(timestamp, timestamp) owner to mts;
+
+
+create or replace function public.f_get_all_queues()
+    returns TABLE
+            (
+                c_id_posad     numeric,
+                c_date_reg     timestamp without time zone,
+                c_melt         text,
+                c_steel_grade  text,
+                c_section      text,
+                c_count        numeric,
+                c_weight_all   numeric,
+                c_weight_one   numeric,
+                c_length       numeric,
+                c_gost         text,
+                c_diameter     numeric,
+                c_customer     text,
+                c_shift        text,
+                c_class        text,
+                c_prod_code    numeric,
+                c_profile      text,
+                c_count_weight numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT r.unit_id_parent                                                 c_id_posad,
+               u.date_reg                                                       c_date_reg,
+               max(case when p.param_id = 10000001 then p.value_s end)::text as c_melt,
+               max(case when p.param_id = 10000002 then p.value_s end)::text as c_steel_grade,
+               max(case when p.param_id = 10000003 then p.value_s end)::text as c_section,
+               max(case when p.param_id = 10000004 then p.value_n end)       as c_count,
+               max(case when p.param_id = 10000005 then p.value_n end)       as c_weight_all,
+               max(case when p.param_id = 10000006 then p.value_n end)       as c_weight_one,
+               max(case when p.param_id = 10000007 then p.value_n end)       as c_length,
+
+               max(case when p.param_id = 10000009 then p.value_s end)::text as c_gost,
+               max(case when p.param_id = 10000010 then p.value_n end)       as c_diameter,
+               max(case when p.param_id = 10000011 then p.value_s end)::text as c_customer,
+               max(case when p.param_id = 10000012 then p.value_s end)::text as c_shift,
+               max(case when p.param_id = 10000013 then p.value_s end)::text as c_class,
+               max(case when p.param_id = 10000015 then p.value_n end)       as c_prod_code,
+               max(case when p.param_id = 10000018 then p.value_s end)::text as c_profile,
+               (select count(distinct ps.unit_id)
+                from mts.passport ps
+                where ps.unit_id in (select * from mts.f_unit_id_child_recursive(r.unit_id_parent, 1))
+                  and ps.param_id = 10000014):: numeric                      as c_count_weight
+        FROM mts.unit_tasks t
+                 join mts.units_relations r on t.unit_id = r.unit_id_child --and r.unit_id_parent = 501734
+                 join mts.units u on u.id = r.unit_id_parent
+                 join mts.passport p on p.unit_id = r.unit_id_parent and p.project_id = 1 -- паспортные данные посада
+        WHERE t.project_id = 1
+          and t.node_id = 10000 -- печать бирок
+          -- and coalesce(u.date_reg, now() - interval '1 day') between p_begin and coalesce(p_end, now())
+          -- and c_melt = p_melt
+        GROUP BY r.unit_id_parent, u.date_reg
+        ORDER BY u.date_reg;
+end;
+$$;
+
+comment on function public.f_get_all_queues() is 'Очередь посадов на провеску за период';
+
+alter function public.f_get_all_queues() owner to mts;
+
+
+drop function public.f_get_queue_period(timestamp, timestamp);
+create or replace function public.f_get_queue_period(p_begin timestamp without time zone, p_end timestamp without time zone)
+    returns TABLE
+            (
+                c_id_posad     numeric,
+                c_date_reg     timestamp without time zone,
+                c_melt         text,
+                c_steel_grade  text,
+                c_section      text,
+                c_count        numeric,
+                c_weight_all   numeric,
+                c_weight_one   numeric,
+                c_length       numeric,
+                c_gost         text,
+                c_profile      text,
+                c_diameter     numeric,
+                c_customer     text,
+                c_shift        text,
+                c_class        text,
+                c_prod_code    numeric,
+                c_count_weight numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT r.unit_id_parent                                                 c_id_posad,
+               u.date_reg                                                       c_date_reg,
+               max(case when p.param_id = 10000001 then p.value_s end)::text as c_melt,
+               max(case when p.param_id = 10000002 then p.value_s end)::text as c_steel_grade,
+               max(case when p.param_id = 10000003 then p.value_s end)::text as c_section,
+               max(case when p.param_id = 10000004 then p.value_n end)       as c_count,
+               max(case when p.param_id = 10000005 then p.value_n end)       as c_weight_all,
+               max(case when p.param_id = 10000006 then p.value_n end)       as c_weight_one,
+               max(case when p.param_id = 10000007 then p.value_n end)       as c_length,
+
+               max(case when p.param_id = 10000009 then p.value_s end)::text as c_gost,
+               max(case when p.param_id = 10000018 then p.value_s end)::text as c_profile,
+               max(case when p.param_id = 10000010 then p.value_n end)       as c_diameter,
+               max(case when p.param_id = 10000011 then p.value_s end)::text as c_customer,
+               max(case when p.param_id = 10000012 then p.value_s end)::text as c_shift,
+               max(case when p.param_id = 10000013 then p.value_s end)::text as c_class,
+               max(case when p.param_id = 10000015 then p.value_n end)       as c_prod_code,
+               (select count(distinct ps.unit_id)
+                from mts.passport ps
+                where ps.unit_id in (select * from mts.f_unit_id_child_recursive(r.unit_id_parent, 1))
+                  and ps.param_id = 10000014):: numeric                      as c_count_weight
+        FROM mts.unit_tasks t
+                 join mts.units_relations r on t.unit_id = r.unit_id_child --and r.unit_id_parent = 501734
+                 join mts.units u on u.id = r.unit_id_parent
+                 join mts.passport p on p.unit_id = r.unit_id_parent and p.project_id = 1 -- паспортные данные посада
+        WHERE t.project_id = 1
+          and t.node_id = 10000 -- печать бирок
+          and coalesce(u.date_reg, now() - interval '1 day') between p_begin and coalesce(p_end, now())
+        GROUP BY r.unit_id_parent, u.date_reg
+        ORDER BY u.date_reg;
+end;
+$$;
+
+comment on function public.f_get_queue_period(timestamp, timestamp) is 'Очередь посадов на провеску за период';
+
+alter function public.f_get_queue_period(timestamp, timestamp) owner to mts;
+
+
+create or replace function public.f_get_coils_period(p_start_date timestamp without time zone,
+                                          p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_id_posad      numeric,
+                c_melt          text,
+                c_id_coil       numeric,
+                c_melt_data     text,
+                c_weight_data   timestamp without time zone,
+                c_qtty_in_posad numeric,
+                c_num_in_posad  numeric,
+                c_weight_fact   numeric,
+                c_coil_number   text,
+                c_steel_mark    text,
+                c_section       text,
+                c_weight_total  numeric,
+                c_weight_one    numeric,
+                c_length        numeric,
+                c_standart      text,
+                c_profile       text,
+                c_diameter      numeric,
+                c_customer      text,
+                c_shift         text,
+                c_class         text,
+                c_product_code  text,
+                shift_number    text,
+                specification   text,
+                lot             numeric,
+                c_qtty_error    text,
+                c_weight_error  text
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT mts.f_unit_id_parent_recursive(t.unit_id, 1)                                      posad_id,    -- Идентификатор посада
+               max(case when p.param_id = 10000001 then p.value_s end)::text   as                melt_no,
+               t.unit_id                                                                         coil_id,     -- Идентификатор бунта ДТ
+               to_char(t.date_reg, 'DD-MM-YYYY HH:MI:SS')                                        melt_data,
+               -- to_char(t.date_close,'DD.MM.YYYY DD.MI.SS') date_close, -- дата без мс
+               date_close                                                                        weight_data,
+
+               max(case when p.param_id = 10000004 then p.value_n end)         as                qtty_in_posad,
+               t.pos                                                                             num_in_posad,
+               max(case when p1.param_id = 10000014 then p1.value_n end)       as                weight_fact, -- ЕУ
+               max(case when p1.param_id = 10000016 then p1.value_n end)::text as                coil_number, -- ЕУ
+
+               -- Далее Параметры посада
+               max(case when p.param_id = 10000002 then p.value_s end)::text   as                steel_mark,
+               max(case when p.param_id = 10000003 then p.value_s end)::text   as                section,
+               max(case when p.param_id = 10000005 then p.value_n end)         as                weight_total,
+               max(case when p.param_id = 10000006 then p.value_n end)         as                weight_one,
+               max(case when p.param_id = 10000007 then p.value_n end)         as                length,
+               max(case when p.param_id = 10000009 then p.value_s end)::text   as                standart,
+               max(case when p.param_id = 10000018 then p.value_s end)::text   as                profile,
+               max(case when p.param_id = 10000010 then p.value_n end)         as                diameter,
+               max(case when p.param_id = 10000011 then p.value_s end)::text   as                customer,
+               max(case when p.param_id = 10000012 then p.value_s end)::text   as                shift,
+               max(case when p.param_id = 10000013 then p.value_s end)::text   as                class,
+               max(case when p.param_id = 10000015 then p.value_n end)::text   as                product_code,
+               max(case when p.param_id = 10000017 then p.value_s end)::text   as                shift_number,
+               max(case when p.param_id = 10000019 then p.value_s end)::text   as                specification,
+               max(case when p.param_id = 10000020 then p.value_n end)         as                lot,
+               -- Проверки
+               -- Ошибка, если кол-во в посаде не совпадает с количеством в очереди
+               case
+                   when max(pos) over (partition by mts.f_unit_id_parent_recursive(t.unit_id, 1)) <>
+                        max(case when p.param_id = 10000004 then p.value_n end) then 'error' end qtty_error,
+               -- Ошибка, если к-во*на вес 1 штуки <> сумм. весу
+               case
+                   when max(case when p.param_id = 10000006 then p.value_n end) *
+                        max(case when p.param_id = 10000004 then p.value_n end) <>
+                        max(case when p.param_id = 10000005 then p.value_n end) then 'error' end weight_error
+        FROM mts.unit_tasks t
+                 join mts.units_relations r on t.unit_id = r.unit_id_child -- для связи ЕУ и посада
+                 left join mts.passport p1 on p1.unit_id = t.unit_id --  паспорт ЕУ из очереди
+                 join mts.passport p on p.unit_id = r.unit_id_parent -- паспорт посада
+            and node_id = 10000 -- ТУ Печать бирок
+        WHERE 1 = 1
+          -- and t.date_reg >= now() - interval '1 month' -- за последние 3 суток
+          -- and p.value_s = '2008996' -- фильтр по плавке
+          -- and date_close is not null -- закрыт интервал - штука провешана, есть вес и номер рулона
+          and date_close between p_start_date and p_finish_date
+        group by t.node_id, t.unit_id, t.pos, t.date_reg, t.date_close
+        order by t.date_reg, pos;
+END;
+$$;
+
+comment on function public.f_get_coils_period(timestamp, timestamp) is 'Список взвешенных бунтов за период';
+
+alter function public.f_get_coils_period(timestamp, timestamp) owner to mts;
+
+
+drop function public.f_get_coils_period_summary(timestamp, timestamp);
+create or replace function public.f_get_coils_period_summary(p_start_date timestamp without time zone,
+                                                             p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_melt         text,
+                c_profile      text,
+                c_diameter     numeric,
+                c_start_time   timestamp without time zone,
+                c_finish_time  timestamp without time zone,
+                c_steel_mark   text,
+                c_section      text,
+                c_count        numeric,
+                c_length       numeric,
+                c_standart     text,
+                c_prod_code    text,
+                c_customer     text,
+                c_coils_count  numeric,
+                c_total_weight numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT p.c_melt                        as melt,
+               max(p.c_profile)                as profile,
+               p.c_diameter                    as diameter,
+               min(p.c_weight_data)            as startTime,
+               max(p.c_weight_data)            as finishTime,
+               max(p.c_steel_mark)             as steel_mark,
+               max(p.c_section)                as section,
+               max(p.c_qtty_in_posad)::numeric as count,
+               max(p.c_length)                 as length,
+               max(p.c_standart)               as standart,
+               max(p.c_product_code)           as prod_code,
+               max(p.c_customer)               as customer,
+               count(p.c_id_coil)::numeric     as coils_count,
+               sum(p.c_weight_fact)            as total_weight
+        FROM public.f_get_coils_period(p_start_date, p_finish_date) p
+        group by p.c_melt,
+                 p.c_diameter,
+                 p.c_qtty_in_posad
+        order by p.c_melt,
+                 p.c_diameter;
+END;
+$$;
+
+comment on function public.f_get_coils_period_summary(timestamp, timestamp) is 'Сводный отчет по взвешенным бунктам за период';
+
+alter function public.f_get_coils_period_summary(timestamp, timestamp) owner to mts;
+
+
+create or replace function public.f_get_report_by_shift(p_begin timestamp without time zone, p_end timestamp without time zone)
+    returns TABLE
+            (
+                begin_period timestamp without time zone,
+                end_period   timestamp without time zone,
+                c_coils      numeric,
+                c_weight     numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT case
+                   when
+                           EXTRACT(hour FROM date_close) between 8 and 20 and EXTRACT(hour FROM date_close) <> 20
+                       then
+                       make_timestamp((extract(year from date_close))::int,
+                                      (extract(month from date_close))::int,
+                                      (extract(day from date_close))::int,
+                                      08::int, 0::int, 0::double precision)
+                   else
+                       make_timestamp((extract(year from date_close))::int,
+                                      (extract(month from date_close))::int,
+                                      (extract(day from date_close))::int,
+                                      20::int, 0::int, 0::double precision)
+                   end                  begin_period,
+
+               case
+                   when
+                           EXTRACT(hour FROM date_close) between 8 and 20 and EXTRACT(hour FROM date_close) <> 20
+                       then
+                       make_timestamp((extract(year from date_close))::int,
+                                      (extract(month from date_close))::int,
+                                      (extract(day from date_close))::int,
+                                      20::int, 0::int, 0::double precision)
+                   else
+                           make_timestamp((extract(year from date_close))::int,
+                                          (extract(month from date_close))::int,
+                                          (extract(day from date_close))::int,
+                                          08::int, 0::int, 0::double precision) + interval '1 day'
+                   end                  end_period,
+
+               count(*)::numeric        c_coils, -- к-во бунтов
+               sum(ps.value_n)::numeric c_weight -- суммарный вес
+        FROM mts.unit_tasks t
+                 join mts.passport ps on ps.unit_id = t.unit_id and ps.param_id = 10000014-- вес бунта
+        WHERE t.project_id = 1
+          and t.node_id = 10000                      -- печать бирок
+          and t.date_close is not null               -- есть вес
+          -- and t.date_close between now()-interval '1 month' and now() --период взвешивания
+          and t.date_close between p_begin and p_end --период взвешивания
+        GROUP BY 1, 2
+        ORDER BY 1, 2;
+end;
+$$;
+
+comment on function public.f_get_report_by_shift(timestamp, timestamp) is 'Сводный отчет за период с группировкой по сменам';
+
+alter function public.f_get_report_by_shift(timestamp, timestamp) owner to mts;
+
+
+drop function public.f_get_report_by_shift(timestamp, timestamp);
+create function public.f_get_report_by_shift(p_start_date timestamp without time zone,
+                                                  p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_shift_number  numeric,
+                c_start_time    timestamp without time zone,
+                c_finish_time   timestamp without time zone,
+                c_coils         numeric,
+                c_weight        numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT
+               (((extract(epoch from date_close-'01-01-2020 08:00:00'::timestamp))::integer/3600)/12)::numeric as c_shift_number,
+               min(date_close) as c_start_time,
+               max(date_close) as c_finish_time,
+               count(*)::numeric as c_coils,
+               sum(ps.value_n)::numeric as c_weight
+        FROM mts.unit_tasks t
+            join mts.passport ps on ps.unit_id = t.unit_id and ps.param_id = 10000014 -- вес бунта
+        WHERE t.project_id = 1
+            and t.node_id = 10000                      -- печать бирок
+            and t.date_close is not null               -- есть вес
+            -- and t.date_close between now()-interval '1 month' and now() --период взвешивания
+            and t.date_close between p_start_date and p_finish_date --период взвешивания
+        GROUP BY 1
+        ORDER BY 1;
+END;
+$$;
+
+comment on function public.f_get_report_by_shift(timestamp, timestamp) is 'Сводный отчет по взвешенным бунтам за период в разрезе смен';
+
+alter function public.f_get_report_by_shift(timestamp, timestamp) owner to mts;
+
+
+drop function public.f_get_report_by_days(timestamp, timestamp);
+create function public.f_get_report_by_days(p_start_date timestamp without time zone,
+                                             p_finish_date timestamp without time zone)
+    returns TABLE
+            (
+                c_date      timestamp without time zone,
+                c_start     timestamp without time zone,
+                c_finish    timestamp without time zone,
+                c_coils     numeric,
+                c_weight    numeric
+            )
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT (to_char(date_close, 'DD-MM-YYYY'))::timestamp as c_date,
+               min(date_close) as c_start,
+               max(date_close) as c_finish,
+               count(*)::numeric        as c_coils,
+               sum(ps.value_n)::numeric as c_weight
+        FROM mts.unit_tasks t
+                 join mts.passport ps on ps.unit_id = t.unit_id and ps.param_id = 10000014 -- вес бунта
+        WHERE t.project_id = 1
+          and t.node_id = 10000                                   -- печать бирок
+          and t.date_close is not null                            -- есть вес
+          -- and t.date_close between now()-interval '1 month' and now() --период взвешивания
+          and t.date_close between p_start_date and p_finish_date --период взвешивания
+        GROUP BY 1
+        ORDER BY 1;
+END;
+$$;
+
+comment on function public.f_get_report_by_days(timestamp, timestamp) is 'Сводный отчет по взвешенным бунтам за период в разрезе суток';
+
+alter function public.f_get_report_by_days(timestamp, timestamp) owner to mts;
+
