@@ -97,7 +97,7 @@ namespace OvenReports.Pages
                         using (StreamWriter sw = new StreamWriter(writePath, false, Encoding.UTF8))
                         {
                             sw.WriteLine(
-                                "№ плавки;Профиль;Диаметр профиля;Марка стали;Сечение заготовки;№ заготовки;Вес заготовки");
+                                "№ плавки;Профиль;Диаметр профиля;Марка стали;Сечение заготовки;№ заготовки;Вес заготовки;Время взвешивания");
                             foreach (IngotsWeights item in _ingotsList)
                             {
                                 sw.WriteLine($"{item.Melt.Trim()};" +
@@ -105,8 +105,9 @@ namespace OvenReports.Pages
                                              $"{item.Diameter:F1};" +
                                              $"{item.SteelGrade};" +
                                              $"{item.IngotProfile};" +
-                                             $"{item.CoilNumber};" +
-                                             $"{item.BilletWeight}");
+                                             $"{item.Position};" +
+                                             $"{item.BilletWeight};" +
+                                             $"{item.TimeBegin:dd.MM.yyyy HH:mm:ss}");
                             }
                         }
 

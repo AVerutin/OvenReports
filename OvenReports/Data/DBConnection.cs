@@ -4,7 +4,6 @@ using System.Data;
 using Microsoft.Extensions.Configuration;
 using NLog;
 using Npgsql;
-using OvenReports.Annotations;
 
 namespace OvenReports.Data
 {
@@ -12,6 +11,7 @@ namespace OvenReports.Data
     {
         private readonly string _connectionString;
         private readonly Logger _logger;
+        private readonly QueryRequests _requests;
 
         /// <summary>
         /// Конструктор создания подключения к базе данных
@@ -68,6 +68,8 @@ namespace OvenReports.Data
 
             _connectionString =
                 $"Server={host};Username={user};Database={database};Port={port};Password={password}"; //";SSLMode=Prefer";
+
+            _requests = new QueryRequests();
         }
 
 
@@ -957,6 +959,124 @@ namespace OvenReports.Data
             {
                 _logger.Error(
                     $"Не удалось получить сводные данные по суткам за период с {startPeriod:G} по {finishPeriod:G} [{ex.Message}]");
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Получить список плавок в печи за период
+        /// </summary>
+        /// <param name="start">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns>Список плавок в печи</returns>
+        public List<ReportMeltsInOwen> GetOwenReport(DateTime start, DateTime end)
+        {
+            List<ReportMeltsInOwen> result = new List<ReportMeltsInOwen>();
+            DataTable dataTable = new DataTable();
+            string request = _requests.GetMeltsInOwenRequest(start, end);
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(request, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            ReportMeltsInOwen item = new ReportMeltsInOwen();
+                            try
+                            {
+                                // Номер плавки
+                                string val = dataTable.Rows[i][0].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.Melt = val;
+
+                                // Марка стали
+                                val = dataTable.Rows[i][1].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                item.SteelMark = val;
+
+                                // Сечение заготовки
+                                val = dataTable.Rows[i][2].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0x0";
+                                item.Section = val;
+
+                                // Длина заготовки
+                                val = dataTable.Rows[i][3].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.IngotLength = int.Parse(val);
+
+                                // Профиль проката
+                                val = dataTable.Rows[i][4].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                item.IngotProfile = val;
+                                
+                                // Диаметр
+                                val = dataTable.Rows[i][5].ToString()?.Trim().Replace(".", ",");
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.Diameter = double.Parse(val);
+                                
+                                // Стандарт
+                                val = dataTable.Rows[i][6].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                item.Standart = val;
+                                
+                                // Заказчик
+                                val = dataTable.Rows[i][7].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                item.Customer = val;
+
+                                // Код продукции
+                                val = dataTable.Rows[i][8].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.ProductCode = int.Parse(val);
+
+                                // Количество заготовок
+                                val = dataTable.Rows[i][9].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.IngotsCount = int.Parse(val);
+
+                                // Время входа в печь 
+                                val = dataTable.Rows[i][10].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                item.TimeStart = DateTime.Parse(val);
+
+                                // Время выхода из печи 
+                                val = dataTable.Rows[i][11].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                item.TimeEnd = DateTime.Parse(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать данные по плавкам в печи за период с {start:G} по {end:G} [{ex.Message}]");
+                            }
+
+                            result.Add(item);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    $"Не удалось получить данные по плавкам в печи за период с {start:G} по {end:G} [{ex.Message}]");
             }
 
             return result;

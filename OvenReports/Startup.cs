@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,21 @@ namespace OvenReports
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<ReportingService>();
+            
+            // services.AddHsts(options =>
+            // {
+            //     options.Preload = true;
+            //     options.IncludeSubDomains = true;
+            //     options.MaxAge = TimeSpan.FromDays(360);
+            //     // options.ExcludedHosts.Add("example.com");
+            //     // options.ExcludedHosts.Add("www.example.com");
+            // });
+            //
+            // services.AddHttpsRedirection(options =>
+            // {
+            //     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+            //     options.HttpsPort = 443;
+            // });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -685,6 +685,19 @@ namespace OvenReports.Data
             return result;
         }
 
+
+        /// <summary>
+        ///  Получить список плавок, посаженных в печь за период 
+        /// </summary>
+        /// <param name="start">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns>Список плавок, посаженных в печь</returns>
+        public List<ReportMeltsInOwen> GetMeltsInOwen(DateTime start, DateTime end)
+        {
+            List<ReportMeltsInOwen> result = _db.GetOwenReport(start, end);
+            return result;
+        }
+
         /// <summary>
         /// Отчет за сутки годного
         /// </summary>
