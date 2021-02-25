@@ -1,0 +1,13 @@
+﻿# Default ignored files
+/shelf/
+/workspace.xml
+# Rider ignored files
+/projectSettingsUpdater.xml
+/contentModel.xml
+/.idea.OvenReports.iml
+/modules.xml
+# Datasource local storage ignored files
+/../../../../../../../../../:\Projects\NET\OvenReports\OvenReports\OvenReports\.idea\.idea.OvenReports.dir\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/

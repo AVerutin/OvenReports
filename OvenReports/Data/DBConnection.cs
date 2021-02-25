@@ -10,6 +10,7 @@ namespace OvenReports.Data
     public class DbConnection
     {
         private readonly string _connectionString;
+        private readonly string _connectionStringTest;
         private readonly Logger _logger;
         private readonly QueryRequests _requests;
 
@@ -60,14 +61,35 @@ namespace OvenReports.Data
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            string host = test ? "10.23.196.58" :  config.GetSection("DBConnection:Host").Value;
+            // Настройки для подключения к базе данных на проде
+            string host = config.GetSection("DBConnection:Host").Value;
             int port = int.Parse(config.GetSection("DBConnection:Port").Value);
             string database = config.GetSection("DBConnection:Database").Value;
             string user = config.GetSection("DBConnection:UserName").Value;
             string password = config.GetSection("DBConnection:Password").Value;
+            int timeout = int.Parse(config.GetSection("DBConnection:Timeout").Value);
+            string sslMode = config.GetSection("DBConnection:SslMode").Value;
+            string trustServerCert = config.GetSection("DBConnection:TrustServerCertificate").Value;
+            
+            // Настроки для подключения к базе данных на тесте
+            string hostT = config.GetSection("DBTest:Host").Value;
+            int portT = int.Parse(config.GetSection("DBTest:Port").Value);
+            string databaseT = config.GetSection("DBTest:Database").Value;
+            string userT = config.GetSection("DBTest:UserName").Value;
+            string passwordT = config.GetSection("DBTest:Password").Value;
+            int timeoutT = int.Parse(config.GetSection("DBTest:Timeout").Value);
+            string sslModeT = config.GetSection("DBTest:SslMode").Value;
+            string trustServerCertT = config.GetSection("DBTest:TrustServerCertificate").Value;
 
+            // Строка подключения для базы данных на проде
             _connectionString =
-                $"Server={host};Username={user};Database={database};Port={port};Password={password}"; //";SSLMode=Prefer";
+                $"Server={host};Username={user};Database={database};Port={port};Password={password};" +
+                $"SSL Mode={sslMode};Trust Server Certificate={trustServerCert};CommandTimeout={timeout}";
+            
+            // Строка подключения для базы данных на тесте
+            _connectionStringTest =
+                $"Server={hostT};Username={userT};Database={databaseT};Port={portT};Password={passwordT};" +
+                $"SSL Mode={sslModeT};Trust Server Certificate={trustServerCertT};CommandTimeout={timeoutT}";
 
             _requests = new QueryRequests();
         }
@@ -303,6 +325,11 @@ namespace OvenReports.Data
                                 if (string.IsNullOrEmpty(val))
                                     val = "0";
                                 item.TotalWeight = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][14].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.MeltId = int.Parse(val);
                             }
                             catch (Exception ex)
                             {
@@ -668,7 +695,7 @@ namespace OvenReports.Data
             DataTable dataTable = new DataTable();
             try
             {
-                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionStringTest))
                 {
                     connection.Open();
                     new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
@@ -802,7 +829,7 @@ namespace OvenReports.Data
             DataTable dataTable = new DataTable();
             try
             {
-                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionString))
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionStringTest))
                 {
                     connection.Open();
                     new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
@@ -1211,5 +1238,230 @@ namespace OvenReports.Data
 
             return result;
         }
+
+        /// <summary>
+        /// Получение данных о соответствии прода и теста
+        /// </summary>
+        /// <param name="begin">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns></returns>
+        public List<CheckDtData> GetCheckDt(DateTime begin, DateTime end)
+        {
+            List<CheckDtData> result = new List<CheckDtData>();
+            string query = _requests.GetCheckDt(begin, end);
+            DataTable dataTable = new DataTable();
+            
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionStringTest))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            CheckDtData row = new CheckDtData();
+                            try
+                            {
+                                string val = dataTable.Rows[i][0].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.LandingId = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][1].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.IngotMes = val;
+                                
+                                val = dataTable.Rows[i][2].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.CoilWeightMes = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][3].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                row.DateClose = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][4].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.IngotDt = val;
+                                
+                                val = dataTable.Rows[i][5].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.CoilWeightDt = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][6].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                row.CoilDateParam = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][7].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                row.TimeBegin = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][8].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                row.TimeEnd = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][9].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.BilletWeight = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][10].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                row.BilletDate = DateTime.Parse(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать данные о соответствии прода и теста за период с {begin:G} по {end:G} [{ex.Message}]");
+                            }
+                            
+                            result.Add(row);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    $"Не удалось получить данные о соответствии прода и теста за период с {begin:G} по {end:G} [{ex.Message}]");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить количество возвратов по идентификатору посада
+        /// </summary>
+        /// <param name="meltId">Идентификатор посада</param>
+        /// <returns>Количество возвратов</returns>
+        public int GetReturnsCountByMeltId(string meltId)
+        {
+            int result = 0;
+            string query = _requests.GetCountReturnsByMeltId(meltId);
+            DataTable dataTable = new DataTable();
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionStringTest))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            try
+                            {
+                                string val = dataTable.Rows[i][4].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                result = int.Parse(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать количество возвратов по иденту плавки {meltId} [{ex.Message}]");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    $"Не удалось получить количество возвратов по иденту плавки {meltId} [{ex.Message}]");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить список возвратов по готовому запросу
+        /// </summary>
+        /// <param name="query">Запрос</param>
+        /// <returns>Список возвратов</returns>
+        public List<ReturningData> GetReturns(string query)
+        {
+            List<ReturningData> result = new List<ReturningData>();
+            DataTable dataTable = new DataTable();
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionStringTest))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            ReturningData item = new ReturningData();
+                            try
+                            {
+                                string val = dataTable.Rows[i][0].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.Melt = val;
+
+                                val = dataTable.Rows[i][1].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                item.TimeBegin = DateTime.Parse(val);
+
+                                val = dataTable.Rows[i][2].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                item.TimeEnd = DateTime.Parse(val);
+
+                                val = dataTable.Rows[i][3].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.IngotNumber = int.Parse(val);
+
+                                val = dataTable.Rows[i][4].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.IngotsCount = int.Parse(val);
+
+                                val = dataTable.Rows[i][5].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                item.TimeCreateLanding = DateTime.Parse(val);
+
+                                val = dataTable.Rows[i][6].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.IngotWeight = int.Parse(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать список возвратов по готовому запросу [{ex.Message}]");
+                            }
+
+                            result.Add(item);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Не удалось получить список возвратов по готовому запросу [{ex.Message}]");
+            }
+
+            return result;
+        }
+
     }
 }

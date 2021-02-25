@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using OvenReports.Data;
 
 namespace OvenReports.Pages
@@ -10,6 +11,7 @@ namespace OvenReports.Pages
         private readonly MeltsForPeriod _meltsPeriod = new MeltsForPeriod();
         private readonly Reports _reports = new Reports();
         private string _showReport = "none";
+        private string _loading = "hidden;";
 
         protected override void OnInitialized()
         {
@@ -20,23 +22,37 @@ namespace OvenReports.Pages
         {
 
         }
+        
+        private void _setLoading(bool visible)
+        {
+            _loading = visible ? "visible;" : "hidden;";
+        }
 
         /// <summary>
         /// Сформировать список простоев за период
         /// </summary>
-        private void GetDowntimes()
+        private async void GetDowntimes()
         {
+            _setLoading(true);
+            _downTimes = new List<DownTime>();
+            await Task.Delay(100);
+            
             _downTimes = _reports.GetDowntimesByDay(_meltsPeriod.PeriodStart, _meltsPeriod.PeriodFinish);
             
             _showReport = "block";
+            _setLoading(false);
             StateHasChanged();
         }
 
         /// <summary>
         /// Сформировать список простоев за текущий день
         /// </summary>
-        private void GetToday()
+        private async void GetToday()
         {
+            _setLoading(true);
+            _downTimes = new List<DownTime>();
+            await Task.Delay(100);
+            
             DateTime today = DateTime.Now;
             string dateStart = $"{today.Day}-{today.Month}-{today.Year} 00:00:00.000";
             DateTime start = DateTime.Parse(dateStart);
@@ -46,14 +62,19 @@ namespace OvenReports.Pages
             _downTimes = _reports.GetDowntimesByDay(start, finish);
             
             _showReport = "block";
+            _setLoading(false);
             StateHasChanged();
         }
 
         /// <summary>
         /// Сформировать список простоев за предыдущий день 
         /// </summary>
-        private void GetYesterday()
+        private async void GetYesterday()
         {
+            _setLoading(true);
+            _downTimes = new List<DownTime>();
+            await Task.Delay(100);
+            
             DateTime yesterday = DateTime.Now.AddDays(-1);
             string dateStart = $"{yesterday.Day}-{yesterday.Month}-{yesterday.Year} 00:00:00.000";
             DateTime start = DateTime.Parse(dateStart);
@@ -63,6 +84,7 @@ namespace OvenReports.Pages
             _downTimes = _reports.GetDowntimesByDay(start, finish);
 
             _showReport = "block";
+            _setLoading(false);
             StateHasChanged();
         }
     }

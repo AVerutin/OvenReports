@@ -1,0 +1,85 @@
+﻿@page "/checkDt"
+@* inject ReportingService ReportingService *@
+@* inject IJSRuntime JSRuntime; *@
+
+<h1>
+    Проверка соответствия данных по стану и теста
+    <div class="spinner-border text-primary" role="status" style="visibility: @_loading">
+        <span class="sr-only">Loading...</span>
+    </div>
+</h1>
+
+<div class="alert alert-secondary mt-4" role="alert">
+    <EditForm Model="_period">
+        <div class="form-row">
+            <div class="form-group col-lg-2">
+                <label for="dataStart">Начало периода</label>
+                <InputDate id="dataStart"  class="form-control" @bind-Value="@_period.TimeBegin"/>
+            </div>
+            <div class="form-group col-lg-2">
+                <label for="dataFinish">Конец периода</label>
+                <InputDate id="dataFinish" class="form-control" @bind-Value="@_period.TimeEnd"/>
+            </div>
+            <div class="form-group col-lg-2" style="text-align: left; vertical-align: middle;">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showReport" type="button" class="btn btn-primary" @onclick="@GetData">Сформировать</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+<div id="checkReport" style="display: @_showReport">
+    <table>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Идентификатор<br/>ЕУ</th>
+                        <th scope="col" style="vertical-align: middle; width: 120px;">Единица<br/>учета</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>бунта</th>
+                        <th scope="col" style="vertical-align: middle; width: 180px;">Время<br/>взвешивания</th>
+                        <th scope="col" style="vertical-align: middle; width: 120px;">Единица<br/>учета</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>бунта</th>
+                        <th scope="col" style="vertical-align: middle; width: 180px;">Время<br/>взвешивания</th>
+                        <th scope="col" style="vertical-align: middle; width: 180px;">Вход на<br/>весы</th>
+                        <th scope="col" style="vertical-align: middle; width: 180px;">Выход с<br/>весов</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>заготовки</th>
+                        <th scope="col" style="vertical-align: middle; width: 180px;">Время<br/>взвешивания</th>
+                        <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="height:630px; overflow:auto;">
+                    <table class="table table-hover">
+                        <tbody>
+                        @foreach (CheckDtData item in _checkDate)
+                        {
+                            if ( item.IngotMes != item.IngotDt || item.CoilWeightMes != item.CoilWeightDt )
+                                _selectRow = "lightyellow;";
+                            else
+                                _selectRow = "none;";
+                            
+                            <tr style="background-color: @_selectRow;">
+                                <th class="align-middle" scope="row" style="width: 100px;">@item.LandingId</th>
+                                <td class="align-middle" style="width: 120px;">@item.IngotMes</td>
+                                <td class="align-middle" style="width: 100px;">@item.CoilWeightMes</td>
+                                <td class="align-middle" style="width: 180px;">@item.DateClose.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                <td class="align-middle" style="width: 120px;">@item.IngotDt</td>
+                                <td class="align-middle" style="width: 100px;">@item.CoilWeightDt</td>
+                                <td class="align-middle" style="width: 180px;">@item.CoilDateParam.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                <td class="align-middle" style="width: 180px;">@item.TimeBegin.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                <td class="align-middle" style="width: 180px;">@item.TimeEnd.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                <td class="align-middle" style="width: 100px;">@item.BilletWeight</td>
+                                <td class="align-middle" style="width: 180px;">@item.BilletDate.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>

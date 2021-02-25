@@ -28,8 +28,15 @@ namespace OvenReports.Data
         public string Shift { get; set; }
         public string IngotClass { get; set; }
         public int Weighted { get; set; }
-        public string Specification { get; set; }
-        public int Lot { get; set; }
+        public int WeightedIngots { get; set; }     // Взвешено заготовок (перед печью)
+        public bool CanBeDeleted { get; set; }      // Признак возможности удаления посада
+        public string Specification { get; set; }   // Спецификация
+        public int Lot { get; set; }                // Лот
+        public int IngotsInOwen { get; set; }       // Количество заготовок на поде печи
+        public int IngotsInMill { get; set; }       // Количество заготовок, выданных из печи в стан
+        public int IngotsReturned { get; set; }     // Количество возвращенных заготовок
+        public int IngotsBroken { get; set; }       // Количество забракованных заготовок
+        public int IngotsMilled { get; set; }       // Прокатано заготовок
 
         public List<CoilData> CoilList { get; set; }
         public LandingData()
@@ -51,8 +58,15 @@ namespace OvenReports.Data
             Shift = default;
             IngotClass = default;
             Weighted = default;
+            WeightedIngots = default;
+            CanBeDeleted = false;
             Specification = default;
             Lot = default;
+            IngotsInOwen = default;
+            IngotsInMill = default;
+            IngotsReturned = default;
+            IngotsBroken = default;
+            IngotsMilled = default;
             
             CoilList = new List<CoilData>();
         }

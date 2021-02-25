@@ -4,6 +4,7 @@ namespace OvenReports.Data
 {
     public class MeltsList
     {
+        public int MeltId { get; set; }
         public string MeltNumber { get; set; }
         public string ProductProfile { get; set; }
         public double Diameter { get; set; }
@@ -21,6 +22,7 @@ namespace OvenReports.Data
 
         public MeltsList()
         {
+            MeltId = default;
             MeltNumber = default;
             ProductProfile = default;
             Diameter = default;

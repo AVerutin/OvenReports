@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NLog;
 
 namespace OvenReports.Data
@@ -9,12 +10,14 @@ namespace OvenReports.Data
         private readonly Logger _logger;
         private readonly DbConnection _db;
         private readonly Shift _shift;
+        private readonly QueryRequests _requests;
         
         public Reports()
         {
             _logger = LogManager.GetCurrentClassLogger();
             _db = new DbConnection();
             _shift = new Shift();
+            _requests = new QueryRequests();
         }
 
         /// <summary>
@@ -101,6 +104,7 @@ namespace OvenReports.Data
             {
                 LandingData item = new LandingData
                 {
+                    LandingId = melt.MeltId,
                     MeltNumber = melt.MeltNumber,
                     ProductProfile = melt.ProductProfile,
                     Diameter = melt.Diameter,
@@ -1166,6 +1170,70 @@ namespace OvenReports.Data
         private List<ReportByShift> GetReportByShift(DateTime periodStart, DateTime periodFinish)
         {
             List<ReportByShift> result = new List<ReportByShift>();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить список возвратов по номеру плавки
+        /// </summary>
+        /// <param name="melt">Номер плавки</param>
+        /// <returns>Список возвратов</returns>
+        public List<ReturningData> GetReturnsByMelt(string melt)
+        {
+            string query = _requests.GetReturnsByMelt(melt);
+            List<ReturningData> result = _db.GetReturns(query);
+            return result;
+        }
+
+        /// <summary>
+        /// Получить список возвратов за период
+        /// </summary>
+        /// <param name="start">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns>Список возвратов</returns>
+        public /*async*/ List<LandingData> GetReturnsByPeriod(DateTime start, DateTime end)
+        {
+            /* ======= */
+            /* 1. № плавки */
+            /* 2. Прокатываемый профиль */
+            /* 3. Диаметр */
+            /* 4. Количество заготвок в плавке */
+            /* 5. Взвешено заготовок */
+            /* 6. Заготовок в печи */
+            /* 7. Заготовок выдано из печи в стан */
+            /* 8. Возвраты */
+            /* 9. Заготовок прокатано */
+            /* 10. Количество брака */
+            /* 11. Взвешено бунтов (годного) */
+            /* ======= */
+
+            List<LandingData> meltsList = GetMelts(start, end);
+            foreach (LandingData melt in meltsList)
+            {
+                /* Получить количество заготовок в печи */
+                /* Получить количество заготовок на стане */
+                /* Получить количество заготовок в браке */
+                /* Получить количество взвешенных бунтов */
+                
+                /* Получить количество возвратов */
+                int returns = _db.GetReturnsCountByMeltId(melt.LandingId.ToString());
+                melt.IngotsReturned = returns;
+                // await Task.Delay(100);
+            }
+
+            return meltsList;
+        }
+
+        /// <summary>
+        /// Получить отчет проверки ДТ
+        /// </summary>
+        /// <param name="begin">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns>Отчет проверки дт</returns>
+        public List<CheckDtData> GetCheckDt(DateTime begin, DateTime end)
+        {
+            List<CheckDtData> result = _db.GetCheckDt(begin, end);
 
             return result;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using OvenReports.Data;
 
 namespace OvenReports.Pages
@@ -20,6 +21,7 @@ namespace OvenReports.Pages
         private List<CoilData> _selectedMelt = new List<CoilData>();
         private string _showReport = "none";
         private MeltInfo _meltInfo;
+        private string _loading = "hidden;";
         
         protected override void OnInitialized()
         {
@@ -30,20 +32,35 @@ namespace OvenReports.Pages
         {
 
         }
-
-        private void GetMelt()
+        
+        private void _setLoading(bool visible)
         {
+            _loading = visible ? "visible;" : "hidden;";
+        }
+
+        private async void GetMelt()
+        {
+            _setLoading(true);
+            _meltsList = new List<LandingData>();
+            await Task.Delay(100);
+            
             string meltNumber = _meltsPeriod.MeltNumber;
             if (!string.IsNullOrEmpty(meltNumber))
             {
                 _meltsList = _reports.GetMelt(meltNumber);
                 _showReport = "block";
-                StateHasChanged();
-            }            
+            }  
+            
+            _setLoading(false);
+            StateHasChanged();
         }
 
-        private void GetMelts()
+        private async void GetMelts()
         {
+            _setLoading(true);
+            _meltsList = new List<LandingData>();
+            await Task.Delay(100);
+            
             DateTime start = _meltsPeriod.PeriodStart;
             DateTime finish = _meltsPeriod.PeriodFinish;
             
@@ -54,6 +71,7 @@ namespace OvenReports.Pages
 
             _meltsList = _reports.GetMelts(start, finish);
             _showReport = "block";
+            _setLoading(false);
             StateHasChanged();
         }
 

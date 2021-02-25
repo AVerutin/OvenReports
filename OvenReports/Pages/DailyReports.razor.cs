@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using OvenReports.Data;
 using NLog;
 
@@ -21,6 +22,7 @@ namespace OvenReports.Pages
         private string _showReport = "none";
         private MeltInfo _meltInfo;
         private Logger _logger;
+        private string _loading = "hidden;";
         
         protected override void OnInitialized()
         {
@@ -31,16 +33,24 @@ namespace OvenReports.Pages
         private void Initialize()
         {
         }
+        
+        private void _setLoading(bool visible)
+        {
+            _loading = visible ? "visible;" : "hidden;";
+        }
 
         /// <summary>
         /// Сформировать отчет за период
         /// </summary>
-        private void GetReportByPeriod()
+        private async void GetReportByPeriod()
         {
+            _setLoading(true);
+            _reportList = new List<DailyReport>();
+            List<DailyReport> result = new List<DailyReport>();
+            await Task.Delay(100);
+            
             DateTime periodStart = DateTime.Parse($"{_meltsPeriod.PeriodStart:d} 00:00:00.000");
             DateTime periodFinish = DateTime.Parse($"{_meltsPeriod.PeriodFinish:d} 23:59:59.999");
-            List<DailyReport> result = new List<DailyReport>();
-            _reportList = new List<DailyReport>();
             
             try
             {
@@ -85,11 +95,16 @@ namespace OvenReports.Pages
             }
             
             _showReport = "block";
+            _setLoading(false);
             StateHasChanged();
         }
 
-        private void GetReportByToday()
+        private async void GetReportByToday()
         {
+            _setLoading(true);
+            _reportList = new List<DailyReport>();
+            await Task.Delay(100);
+            
             DateTime now = DateTime.Now;
             DateTime todayStart = DateTime.Parse($"{now:d} 00:00:00.000");
             DateTime todayFinish = DateTime.Parse($"{now:d} 23:59:59.999");
@@ -114,11 +129,16 @@ namespace OvenReports.Pages
             }
             
             _showReport = "block";
+            _setLoading(false);
             StateHasChanged();
         }
 
-        private void GetReportByYesterday()
+        private async void GetReportByYesterday()
         {
+            _setLoading(true);
+            _reportList = new List<DailyReport>();
+            await Task.Delay(100);
+            
             DateTime yesterday = DateTime.Now.AddDays(-1);
             DateTime yesterdayStart = DateTime.Parse($"{yesterday:d} 00:00:00.000");
             DateTime yesterdayFinish = DateTime.Parse($"{yesterday:d} 23:59:59.999");
@@ -143,6 +163,7 @@ namespace OvenReports.Pages
             }
             
             _showReport = "block";
+            _setLoading(false);
             StateHasChanged();
         }
 
@@ -151,14 +172,19 @@ namespace OvenReports.Pages
         /// </summary>
         /// <param name="start">Начало периода</param>
         /// <param name="finish">Конец периода</param>
-        private void GetPrepareCoils(DateTime start, DateTime finish)
+        private async void GetPrepareCoils(DateTime start, DateTime finish)
         {
+            _setLoading(true);
+            _meltsList = new List<MeltsForPeriod>();
+            await Task.Delay(100);
+            
             DateTime periodStart = DateTime.Parse($"{start:d} 00:00:00.000");
             DateTime periodFinish = DateTime.Parse($"{finish:d} 23:59:59.999");
             _meltInfo.StartDate = periodStart;
             _meltInfo.FinishDate = periodFinish;
 
             _meltsList = _reports.GetDailyReport(periodStart, periodFinish);
+            _setLoading(false);
             StateHasChanged();
         }
     }

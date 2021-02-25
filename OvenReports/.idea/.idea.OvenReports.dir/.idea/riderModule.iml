@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="RIDER_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.js.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.min.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.min.js.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.js.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.min.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.min.js.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap.sass/4.5.3/contentFiles/any/any/wwwroot/scss" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-grid.css" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-grid.css.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-grid.min.css" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-grid.min.css.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-reboot.css" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-reboot.css.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-reboot.min.css" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap-reboot.min.css.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap.css" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap.css.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap.min.css" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/css/bootstrap.min.css.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.js.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.min.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.bundle.min.js.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.js.map" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.min.js" />
+    <content url="file://$USER_HOME$/.nuget/packages/bootstrap/4.5.3/contentFiles/any/any/wwwroot/js/bootstrap.min.js.map" />
+    <content url="file://$MODULE_DIR$/../.." />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

@@ -189,7 +189,7 @@ th, td {
 #meltReport {
     border: 2px solid #818182;
     border-radius: 15px;
-    width: 1600px;
+    width: 1580px;
     height: 700px;
 }
 
@@ -262,5 +262,19 @@ th, td {
     border: 2px solid #818182;
     border-radius: 15px;
     width: 720px;
+    height: 700px;
+}
+
+#returnsReport {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: 1300px;
+    height: 700px;
+}
+
+#checkReport {
+    border: 2px solid #818182;
+    border-radius: 15px;
+    width: 1550px;
     height: 700px;
 }

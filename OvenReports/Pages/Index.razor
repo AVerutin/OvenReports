@@ -2,7 +2,12 @@
 @* inject ReportingService ReportingService *@
 @* inject IJSRuntime JSRuntime; *@
 
-<h1>Отчет по плавкам годного</h1>
+<h1>
+    Отчет по плавкам годного
+    <div class="spinner-border text-primary" role="status" style="visibility: @_loading">
+        <span class="sr-only">Loading...</span>
+    </div>
+</h1>
 
 <div class="alert alert-secondary mt-4" role="alert">
     <EditForm Model="_meltsPeriod">
@@ -38,16 +43,16 @@
             <td>
                 <table>
                     <tr>
-                        <th scope="col" style="vertical-align: middle; width: 90px;">№<br/>плавки</th>
-                        <th scope="col" style="vertical-align: middle; width: 90px;">Профиль</th>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр<br/>профиля</th>
+                        <th scope="col" style="vertical-align: middle; width: 85px;">№<br/>плавки</th>
+                        <th scope="col" style="vertical-align: middle; width: 85px;">Профиль</th>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">Диаметр<br/>профиля</th>
                         <th scope="col" style="vertical-align: middle; width: 160px;">Дата</th>
-                        <th scope="col" style="vertical-align: middle; width: 120px;">Марка<br/>стали</th>
-                        <th scope="col" style="vertical-align: middle; width: 120px;">Сечение</th>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Кол-во<br/>заготовок</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Марка<br/>стали</th>
+                        <th scope="col" style="vertical-align: middle; width: 85px;">Сечение</th>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">Кол-во<br/>заготовок</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Длина<br/>заготовки</th>
-                        <th scope="col" style="vertical-align: middle; width: 150px;">Стандарт</th>
-                        <th scope="col" style="vertical-align: middle; width: 120px;">Код<br />продукции</th>
+                        <th scope="col" style="vertical-align: middle; width: 200px;">Стандарт</th>
+                        <th scope="col" style="vertical-align: middle; width: 90px;">Код<br />продукции</th>
                         <th scope="col" style="vertical-align: middle; width: 150px;">Заказчик</th>
                         <th scope="col" style="vertical-align: middle; width: 90px;">Кол-во<br/>бунтов</th>
                         <th scope="col" style="vertical-align: middle; width: 90px;">Вес<br/>годного</th>
@@ -65,19 +70,19 @@
                         @foreach (LandingData item in _meltsList)
                         {
                             <tr>
-                                <th class="align-middle" scope="row" style="width: 90px;">@item.MeltNumber</th>
-                                <td class="align-middle" style="width: 90px;">@item.ProductProfile</td>
-                                <td class="align-middle" style="width: 100px;">@item.Diameter</td>
+                                <th class="align-middle" scope="row" style="width: 85px;">@item.MeltNumber</th>
+                                <td class="align-middle" style="width: 85px;">@item.ProductProfile</td>
+                                <td class="align-middle" style="width: 90px;">@item.Diameter</td>
                                 <td class="align-middle" style="width: 160px;">
                                     @item.FirstWeighting.ToString("dd-MM-yyyy HH:mm")<br/>
                                     @item.LastWeighting.ToString("dd-MM-yyyy HH:mm")
                                 </td>
-                                <td class="align-middle" style="width: 120px;">@item.SteelMark</td>
-                                <td class="align-middle" style="width: 120px;">@item.IngotProfile</td>
-                                <td class="align-middle" style="width: 100px;">@item.IngotsCount</td>
+                                <td class="align-middle" style="width: 150px;">@item.SteelMark</td>
+                                <td class="align-middle" style="width: 85px;">@item.IngotProfile</td>
+                                <td class="align-middle" style="width: 90px;">@item.IngotsCount</td>
                                 <td class="align-middle" style="width: 100px;">@item.IngotLength</td>
-                                <td class="align-middle" style="width: 150px;">@item.Standart</td>
-                                <td class="align-middle" style="width: 120px;">@item.ProductCode</td>
+                                <td class="align-middle" style="width: 200px;">@item.Standart</td>
+                                <td class="align-middle" style="width: 90px;">@item.ProductCode</td>
                                 <td class="align-middle" style="width: 150px;">@item.Customer</td>
                                 <td class="align-middle" style="width: 90px;">@item.Weighted</td>
                                 <td class="align-middle" style="width: 90px;">@item.WeightReal</td>

@@ -3,7 +3,12 @@
 @* inject IJSRuntime JSRuntime; *@
 
 <div>
-    <h1>Отчет за сутки годного</h1>
+    <h1>
+        Годного за сутки
+        <div class="spinner-border text-primary" role="status" style="visibility: @_loading">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </h1>
 </div>
 
 <div class="alert alert-secondary mt-4" role="alert">
