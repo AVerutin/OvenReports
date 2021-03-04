@@ -1,0 +1,145 @@
+﻿@page "/deletedByPeriod"
+@* inject ReportingService ReportingService *@
+@* inject IJSRuntime JSRuntime; *@
+
+<h1>
+    Отчет по удаленным ЕУ за периорд
+    <div class="spinner-border text-primary" role="status" style="visibility: @_loading">
+        <span class="sr-only">Loading...</span>
+    </div>
+</h1>
+
+<div class="alert alert-secondary mt-4" role="alert">
+    <EditForm Model="this">
+        <div class="form-row">
+            <div class="form-group col-lg-2">
+                <label for="dataStart">Начало периода</label>
+                @* <InputDate id="dataStart" class="form-control" @bind-Value="@_timeBegin"/> *@
+                <input type="datetime-local" class="form-control" id="dataStart" name="timeStart" @bind-Value="_timeBegin" @bind-Value:event="oninput"/>
+            </div>
+            <div class="form-group col-lg-2">
+                <label for="dataFinish">Конец периода</label>
+                @* <InputDate id="dataFinish" class="form-control" @bind-Value="@_timeEnd"/> *@
+                <input type="datetime-local" class="form-control" id="dataFinish" name="timeEnd" @bind-Value="_timeEnd" @bind-Value:event="oninput"/>
+            </div>
+            <div class="form-group col-lg-2" style="text-align: left; vertical-align: middle;">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showReport" type="button" class="btn btn-primary" @onclick="@GetData">Сформировать</button>
+            </div>
+            
+            <div class="form-group col-md-auto">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showCurrentShift" type="button" class="btn btn-primary" @onclick="@GetCurrentDay">За текущие сутки</button>
+            </div>
+            <div class="form-group col-md-auto" style="text-align: center; vertical-align: middle;">
+                <div style="height: 32px">&nbsp;</div>
+                <button id="showPrevShift" type="button" class="btn btn-primary" @onclick="@GetPrevDay">За предыдущие сутки</button>
+            </div>
+
+        </div>
+    </EditForm>
+</div>
+
+<div id="deletedReport" style="display: @_showReport">
+    <table>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Идент<br/>техузла</th>
+                        <th scope="col" style="vertical-align: middle; width: 250px;">Техузел</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Единица<br/>учета</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Идент<br/>ЕУ</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Идент<br/>ССМ</th>
+                        <th scope="col" style="vertical-align: middle; width: 200px;">Вход<br/>на ТУ</th>
+                        <th scope="col" style="vertical-align: middle; width: 200px;">Выход<br/>из ТУ</th>
+                        <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="height:570px; overflow:auto;">
+                    <table class="table table-hover">
+                        <tbody>
+                        @foreach (DeletedIngots item in _deletedIngots)
+                        {
+                            if (false)
+                                _selectRow = "background-color: lightpink; font-style: italic;";
+                            else
+                                _selectRow = "background-color: none;";
+
+                            <tr style="@_selectRow">
+                                @if (item.NodeId == 0)
+                                {
+                                    <th class="align-middle" scope="row" style="width: 100px;">&nbsp;</th>
+                                }
+                                else
+                                {
+                                    <th class="align-middle" scope="row" style="width: 100px;">@item.NodeId</th>
+                                }
+                                
+                                @if (string.IsNullOrEmpty(item.NodeCode))
+                                {
+                                    <td class="align-middle" style="width: 250px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 250px;">@item.NodeCode</td>
+                                }
+                                
+                                @if (string.IsNullOrEmpty(item.MeltNumber))
+                                {
+                                    <td class="align-middle" style="width: 150px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 150px;">@item.MeltNumber</td>
+                                }
+                                
+                                @if (item.UnitId == 0)
+                                {
+                                    <td class="align-middle" style="width: 100px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 100px;">@item.UnitId</td>
+                                }
+                                
+                                @if (item.IngotId == 0)
+                                {
+                                    <td class="align-middle" style="width: 100px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 100px;">@item.IngotId</td>
+                                }
+                                
+                                @if (item.TimeBegin == DateTime.MinValue)
+                                {
+                                    <td class="align-middle" style="width: 200px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 200px;">@item.TimeBegin.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                }
+                                
+                                @if (item.TimeEnd == DateTime.MinValue)
+                                {
+                                    <td class="align-middle" style="width: 200px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 200px;">@item.TimeEnd.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                }
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+

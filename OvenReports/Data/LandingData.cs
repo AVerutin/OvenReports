@@ -35,7 +35,7 @@ namespace OvenReports.Data
         public int IngotsInOwen { get; set; }       // Количество заготовок на поде печи
         public int IngotsInMill { get; set; }       // Количество заготовок, выданных из печи в стан
         public int IngotsReturned { get; set; }     // Количество возвращенных заготовок
-        public int IngotsBroken { get; set; }       // Количество забракованных заготовок
+        public int IngotsRejected { get; set; }       // Количество забракованных заготовок
         public int IngotsMilled { get; set; }       // Прокатано заготовок
 
         public List<CoilData> CoilList { get; set; }
@@ -65,7 +65,7 @@ namespace OvenReports.Data
             IngotsInOwen = default;
             IngotsInMill = default;
             IngotsReturned = default;
-            IngotsBroken = default;
+            IngotsRejected = default;
             IngotsMilled = default;
             
             CoilList = new List<CoilData>();

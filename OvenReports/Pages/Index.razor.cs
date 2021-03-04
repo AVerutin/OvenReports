@@ -69,7 +69,7 @@ namespace OvenReports.Pages
             string dateFinish = $"{finish.Day}-{finish.Month}-{finish.Year} 23:59:59.999";
             finish = DateTime.Parse(dateFinish);
 
-            _meltsList = _reports.GetMelts(start, finish);
+            _meltsList = _reports.GetMelts(start, finish, OrderTypes.OrderByMeltNumber);
             _showReport = "block";
             _setLoading(false);
             StateHasChanged();

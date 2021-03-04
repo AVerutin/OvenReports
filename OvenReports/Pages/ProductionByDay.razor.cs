@@ -48,7 +48,8 @@ namespace OvenReports.Pages
             string dateFinish = $"{finish.Day}-{finish.Month}-{finish.Year} 23:59:59.999";
             finish = DateTime.Parse(dateFinish);
 
-            _landed = _reports.GetReturnsByPeriod(start, finish);
+            _landed = _reports.GetDailyProductionReportByPeriod(start, finish);
+            
             _showReport = "block";
             _setLoading(false);
             StateHasChanged();
@@ -59,7 +60,21 @@ namespace OvenReports.Pages
         /// </summary>
         private async void GetCurrentDay()
         {
+            _setLoading(true);
+            _landed = new List<LandingData>();
+            await Task.Delay(100);
             
+            DateTime today = DateTime.Today;
+            string dateBegin = $"{today.Day}-{today.Month}-{today.Year} 00:00:00.000";
+            string dateEnd = $"{today.Day}-{today.Month}-{today.Year} 23:59:59.999";
+            DateTime begin = DateTime.Parse(dateBegin);
+            DateTime end = DateTime.Parse(dateEnd);
+            
+            _landed = _reports.GetDailyProductionReportByPeriod(begin, end);
+            
+            _showReport = "block";
+            _setLoading(false);
+            StateHasChanged();
         }
 
         /// <summary>
@@ -67,36 +82,21 @@ namespace OvenReports.Pages
         /// </summary>
         private async void GetPrevDay()
         {
+            _setLoading(true);
+            _landed = new List<LandingData>();
+            await Task.Delay(100);
             
-        }
-
-        /// <summary>
-        /// Отчет за текущую смену
-        /// </summary>
-        private async void GetCurrentShift()
-        {
+            DateTime yesterday = DateTime.Today.AddDays(-1);
+            string dateBegin = $"{yesterday.Day}-{yesterday.Month}-{yesterday.Year} 00:00:00.000";
+            string dateEnd = $"{yesterday.Day}-{yesterday.Month}-{yesterday.Year} 23:59:59.999";
+            DateTime begin = DateTime.Parse(dateBegin);
+            DateTime end = DateTime.Parse(dateEnd);
             
-        }
-
-        /// <summary>
-        /// Отчет за предыдущую смену 
-        /// </summary>
-        private async void GetPrevShift()
-        {
+            _landed = _reports.GetDailyProductionReportByPeriod(begin, end);
             
-        }
-
-        /// <summary>
-        /// Получить список бунтов для выбранной плавки
-        /// </summary>
-        /// <param name="meltNumber">Номер плавки</param>
-        /// <param name="diameter">Диаметр прокатываемого профиля</param>
-        private void GetPrepareCoils(string meltNumber, double diameter)
-        {
-            // Получать список бунтов по запросу из БД
-            // _selectedMelt = _db.GetCoilsByMelt(meltNumber, diameter, false);
-            // _meltInfo.MeltNumber = _selectedMelt[0].MeltNumber;
-            // _meltInfo.Diameter = _selectedMelt[0].Diameter;
+            _showReport = "block";
+            _setLoading(false);
+            StateHasChanged();
         }
     }
 }

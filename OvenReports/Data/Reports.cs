@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic;
 using NLog;
 
 namespace OvenReports.Data
@@ -78,20 +79,16 @@ namespace OvenReports.Data
         /// </summary>
         /// <param name="start">Начало периода</param>
         /// <param name="finish">Конец периода</param>
+        /// <param name="orderType">Тип сортировки результата</param>
         /// <returns>Список плавок за период</returns>
-        public List<LandingData> GetMelts(DateTime start, DateTime finish)
+        public List<LandingData> GetMelts(DateTime start, DateTime finish, OrderTypes orderType)
         {
-            string dateStart = $"{start.Day}-{start.Month}-{start.Year} 00:00:00.000";
-            start = DateTime.Parse(dateStart);
-            string dateFinish = $"{finish.Day}-{finish.Month}-{finish.Year} 23:59:59.999";
-            finish = DateTime.Parse(dateFinish);
-            
             List<LandingData> meltsList = new List<LandingData>();
             List<MeltsList> melts = new List<MeltsList>();
             
             try
             {
-                melts = _db.GetMeltsListSummary(start, finish);
+                melts = _db.GetMeltsListSummary(start, finish, orderType);
                 
             }
             catch (Exception ex)
@@ -1208,14 +1205,9 @@ namespace OvenReports.Data
             /* 11. Взвешено бунтов (годного) */
             /* ======= */
 
-            List<LandingData> meltsList = GetMelts(start, end);
+            List<LandingData> meltsList = GetMelts(start, end, OrderTypes.OrderByPeriodStart);
             foreach (LandingData melt in meltsList)
             {
-                /* Получить количество заготовок в печи */
-                /* Получить количество заготовок на стане */
-                /* Получить количество заготовок в браке */
-                /* Получить количество взвешенных бунтов */
-                
                 /* Получить количество возвратов */
                 int returns = _db.GetReturnsCountByMeltId(melt.LandingId.ToString());
                 melt.IngotsReturned = returns;
@@ -1234,6 +1226,147 @@ namespace OvenReports.Data
         public List<CheckDtData> GetCheckDt(DateTime begin, DateTime end)
         {
             List<CheckDtData> result = _db.GetCheckDt(begin, end);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить список бурежек за период
+        /// </summary>
+        /// <param name="begin">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns></returns>
+        public List<RejectionsData> GetRejections(DateTime begin, DateTime end)
+        {
+            List<RejectionsData> result = _db.GetRejectionsByPeriod(begin, end);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить отчет по производству за период по сменам
+        /// </summary>
+        /// <param name="begin">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns></returns>
+        public List<LandingData> GetShiftProductionReportByPeriod(DateTime begin, DateTime end)
+        {
+            // Готовим результат для возврата из функцмм;
+            List<LandingData> result = new List<LandingData>();
+            
+            // Получить список возвратов за период;
+            List<LandingData> returns = GetReturnsByPeriod(begin, end);
+            
+            // Получить список бурежек за период;
+            List<RejectionsData> rejected = GetRejections(begin, end);
+            
+            // Обновление данных по возвратам и бурежкам в результирующем наборе
+            DateTime shiftBegin = DateTime.MinValue;    // Время начала смены для добавления разделителей смен
+            DateTime shiftEnd = DateTime.MinValue;      // Время конца смены  для добавления разделителей смен
+            Shift shift = new Shift();                  // Класс для работы со сменами
+
+            // Обходим полученный список из базы данных
+            foreach (LandingData melt in returns)
+            {
+                // Определяем время начала смены и время конца смены
+                // Проходим по полученному из БД списку плавок
+                // Если время начала смены не определено, ставим его равным времени начала смены, в которую каталась текущая плавка
+                //      Ставим время конца смены равным времени конца смены, в которую каталась текущая плавка
+                // Иначе, если время начала смены, в которую каталась текукщая плавка, не равна времени начала смены
+                //      Добавляем пустую строку и устанавливаем время начала и конца смены равным времени начала и конца смены, в которую каталась плавка
+
+                // Определяем смену, в которую был прокат
+                ShiftData shiftData = shift.GetShiftByDate(melt.FirstWeighting);
+                
+                // Проверяем, установлено ли время начала смены
+                if (shiftBegin == DateTime.MinValue)
+                {
+                    // Если нет, установим его
+                    shiftBegin = shiftData.StartTime;
+                    shiftEnd = shiftData.FinishTime;
+                }
+                else if (melt.FirstWeighting > shiftEnd)
+                {
+                    // Если да, и смена проката плавки была позже, добавим разделитель периодов
+                    result.Add(new LandingData());
+                    shiftBegin = shiftData.StartTime;
+                    shiftEnd = shiftData.FinishTime;
+                }
+                
+                // Для каждой плавки ищем соответствие номера плавки в списке бурежек
+                foreach (RejectionsData rejects in rejected)
+                {
+                    if (melt.MeltNumber == rejects.Melt)
+                    {
+                        melt.IngotsRejected = rejects.IngotsCount;
+                    }
+                }
+                
+                result.Add(melt);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить отчет по производству за период по суткам
+        /// </summary>
+        /// <param name="begin"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public List<LandingData> GetDailyProductionReportByPeriod(DateTime begin, DateTime end)
+        {
+            // Готовим результат для возврата из функцмм;
+            List<LandingData> result = new List<LandingData>();
+            
+            // Получить список возвратов за период;
+            List<LandingData> returns = GetReturnsByPeriod(begin, end);
+            
+            // Получить список бурежек за период;
+            List<RejectionsData> rejected = GetRejections(begin, end);
+            
+            // Обновление данных по возвратам и бурежкам в результирующем наборе
+            DateTime prevDate = DateTime.MinValue;
+            foreach (LandingData melt in returns)
+            {
+                if (prevDate == DateTime.MinValue)
+                {
+                    // Если неизвестна дата проката предыдущей плавки, ставим дату текущей плавки
+                    prevDate = melt.FirstWeighting.Date;
+                }
+                else if (prevDate.Date != melt.FirstWeighting.Date)
+                {
+                    // Если дата текущей плавки не равна дате предыдущей плавки, то добавим разделитель периодов
+                    result.Add(new LandingData());
+                        
+                    // Установим дату проката на дату проката текущей плавки
+                    prevDate = melt.FirstWeighting.Date;
+                }
+                
+                // Для каждой плавки ищем соответствие номера плавки в списке бурежек
+                foreach (RejectionsData rejects in rejected)
+                {
+                    if (melt.MeltNumber == rejects.Melt)
+                    {
+                        melt.IngotsRejected = rejects.IngotsCount;
+                    }
+                }
+                
+                result.Add(melt);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить список удаленных ЕУ за период
+        /// </summary>
+        /// <param name="begin">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns>Список удаленных ЕУ за период</returns>
+        public List<DeletedIngots> GetDeletedIngotsByPeriod(DateTime begin, DateTime end)
+        {
+            List<DeletedIngots> result = _db.GetDeletedIngotsByPeriod(begin, end);
 
             return result;
         }

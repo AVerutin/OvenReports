@@ -40,16 +40,18 @@ namespace OvenReports.Pages
             _landed = new List<LandingData>();
             await Task.Delay(100);
 
-            DateTime start = _timeBegin.AddDays(-1);
+            DateTime start = _timeBegin;
             DateTime finish = _timeEnd;
             
-            string dateStart = $"{start.Day}-{start.Month}-{start.Year} 20:00:00.000";
-            start = DateTime.Parse(dateStart);
-            string dateFinish = $"{finish.Day}-{finish.Month}-{finish.Year} 19:59:59.999";
-            finish = DateTime.Parse(dateFinish);
+            DateTime rangeStart = start.AddDays(-1);
+            DateTime rangeFinish = finish;
+            string timeStart = $"{rangeStart.Day}-{rangeStart.Month}-{rangeStart.Year} 20:00:00.000";
+            string timeFinish = $"{rangeFinish.Day}-{rangeFinish.Month}-{rangeFinish.Year} 20:00:00.000";
+            DateTime periodStart = DateTime.Parse(timeStart);
+            DateTime periodFinish = DateTime.Parse(timeFinish);
 
-            //TODO: Заменить отчет по возвратам на отчет по производству
-            _landed = _reports.GetReturnsByPeriod(start, finish);
+            _landed = _reports.GetShiftProductionReportByPeriod(periodStart, periodFinish);
+            
             _showReport = "block";
             _setLoading(false);
             StateHasChanged();
@@ -63,13 +65,13 @@ namespace OvenReports.Pages
             _setLoading(true);
             _landed = new List<LandingData>();
             await Task.Delay(100);
-
+            
             // Получить данные по текущей смене
             Shift shift = new Shift();
             ShiftData currentShift = shift.GetCurrentShift();
-
-            //TODO: Заменить отчет по возвратам на отчет по производству
-            _landed = _reports.GetReturnsByPeriod(currentShift.StartTime, currentShift.FinishTime);
+            
+            _landed = _reports.GetShiftProductionReportByPeriod(currentShift.StartTime, currentShift.FinishTime);
+            
             _showReport = "block";
             _setLoading(false);
             StateHasChanged();
@@ -83,28 +85,16 @@ namespace OvenReports.Pages
             _setLoading(true);
             _landed = new List<LandingData>();
             await Task.Delay(100);
-
+            
             // Получить данные по предыдущей смене
             Shift shift = new Shift();
-            ShiftData prevShift = shift.GetPreviousShift();
-
-            _landed = _reports.GetReturnsByPeriod(prevShift.StartTime, prevShift.FinishTime);
+            ShiftData previousShift = shift.GetPreviousShift();
+            
+            _landed = _reports.GetShiftProductionReportByPeriod(previousShift.StartTime, previousShift.FinishTime);
+            
             _showReport = "block";
             _setLoading(false);
             StateHasChanged();
-        }
-
-        /// <summary>
-        /// Получить список бунтов для выбранной плавки
-        /// </summary>
-        /// <param name="meltNumber">Номер плавки</param>
-        /// <param name="diameter">Диаметр прокатываемого профиля</param>
-        private void GetPrepareCoils(string meltNumber, double diameter)
-        {
-            // Получать список бунтов по запросу из БД
-            // _selectedMelt = _db.GetCoilsByMelt(meltNumber, diameter, false);
-            // _meltInfo.MeltNumber = _selectedMelt[0].MeltNumber;
-            // _meltInfo.Diameter = _selectedMelt[0].Diameter;
         }
     }
 }

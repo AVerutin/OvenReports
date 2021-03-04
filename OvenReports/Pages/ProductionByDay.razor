@@ -40,25 +40,27 @@
 </div>
 
 
-<div id="returnsReport" style="display: @_showReport">
+<div id="prodDay" style="display: @_showReport">
     <table>
         <tr>
             <td>
                 <table>
                     <tr>
                         @* <th scope="col">№<br />посада</th> *@
-                        <th scope="col" style="vertical-align: middle; width: 88px;">№<br/>плавки</th>
-                        <th scope="col" style="vertical-align: middle; width: 88px;">Профиль</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">№<br/>плавки</th>
+                        <th scope="col" style="vertical-align: middle; width: 180px;">Начало<br/>проката</th>
+                        <th scope="col" style="vertical-align: middle; width: 180px;">Конец<br/>проката</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Профиль</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Диаметр<br />профиля</th>
-                        <th scope="col" style="vertical-align: middle; width: 129px;">Количество<br />заготовок</th>
-                        <th scope="col" style="vertical-align: middle; width: 129px;">Взвешено<br />заготовок</th>
-                        <th scope="col" style="vertical-align: middle; width: 129px;">Заготовок<br />в печи</th>
-                        <th scope="col" style="vertical-align: middle; width: 129px;">Выдано<br />из печи</th>
-                        <th scope="col" style="vertical-align: middle; width: 123px;">Возвратов</th>
-                        <th scope="col" style="vertical-align: middle; width: 129px;">Заготовок<br />прокатано</th>
-                        <th scope="col" style="vertical-align: middle; width: 118px;">Брак</th>
-                        <th scope="col" style="vertical-align: middle; width: 114px;">Взвешено<br />бунтов</th>
-                        @* <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th> *@
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Количество<br />заготовок</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Взвешено<br />заготовок</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Заготовок<br />в печи</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Выдано<br />из печи</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Возвратов</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Заготовок<br />прокатано</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Брак</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Взвешено<br />бунтов</th>
+                        <th scope="col" style="vertical-align: middle; width: 15px;">&nbsp;</th>
                     </tr>
                 </table>
             </td>
@@ -70,23 +72,46 @@
                         <tbody>
                         @foreach (LandingData item in _landed)
                         {
-                            <tr>
-                                @* <th scope="row">@item.LandingId</th> *@
-                                <th scope="row" style="width: 88px;">@item.MeltNumber</th>
-                                <td style="width: 88px;">@item.ProductProfile</td>
-                                <td style="width: 100px;">@item.Diameter</td>
-                                <td style="width: 129px;">@item.IngotsCount</td>
-                                <td style="width: 129px;">@item.WeightedIngots</td>
-                                <td style="width: 129px;">@item.IngotsInOwen</td>
-                                <td style="width: 129px;">@item.IngotsInMill</td>
-                                <td style="width: 123px;">@item.IngotsReturned</td>
-                                <td style="width: 129px;">@item.IngotsMilled</td>
-                                <td style="width: 118px;">@item.IngotsBroken</td>
-                                <td style="width: 114px;">@item.Weighted</td>
-                                @* <td class="align-middle" style="width: 90px;"> *@
-                                @*     <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { GetPrepareCoils(item.MeltNumber, item.Diameter); })">&#10050;</button> *@
-                                @* </td> *@
-                            </tr>
+                            if(item.FirstWeighting != DateTime.MinValue)
+                            {
+                                <tr>
+                                    @* <th scope="row">@item.LandingId</th> *@
+                                    <th scope="row" style="width: 100px;">@item.MeltNumber</th>
+                                    <td style="width: 180px;">@item.FirstWeighting.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                    <td style="width: 180px;">@item.LastWeighting.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                    <td style="width: 100px;">@item.ProductProfile</td>
+                                    <td style="width: 100px;">@item.Diameter</td>
+                                    <td style="width: 100px;">@item.IngotsCount</td>
+                                    <td style="width: 100px;">@item.WeightedIngots</td>
+                                    <td style="width: 100px;">@item.IngotsInOwen</td>
+                                    <td style="width: 100px;">@item.IngotsInMill</td>
+                                    <td style="width: 100px;">@item.IngotsReturned</td>
+                                    <td style="width: 100px;">@item.IngotsMilled</td>
+                                    <td style="width: 100px;">@item.IngotsRejected</td>
+                                    <td style="width: 100px;">@item.Weighted</td>
+                                    @* <td class="align-middle" style="width: 90px;"> *@
+                                    @*     <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg" @onclick="@(() => { GetPrepareCoils(item.MeltNumber, item.Diameter); })">&#10050;</button> *@
+                                    @* </td> *@
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr style="background-color: #f2f2f2">
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 180px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 180px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                    <th scope="col" style="vertical-align: middle; width: 100px;">&nbsp;</th>
+                                </tr>
+                            }
                         }
                         </tbody>
                     </table>

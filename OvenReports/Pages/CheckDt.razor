@@ -10,22 +10,24 @@
 </h1>
 
 <div class="alert alert-secondary mt-4" role="alert">
-    <EditForm Model="_period">
+    @* <EditForm Model="_period"> *@
         <div class="form-row">
             <div class="form-group col-lg-2">
                 <label for="dataStart">Начало периода</label>
-                <InputDate id="dataStart"  class="form-control" @bind-Value="@_period.TimeBegin"/>
+                @* <InputDate id="dataStart" class="form-control" @bind-Value="@_period.TimeBegin"/> *@
+                <input type="datetime-local" class="form-control" id="dataStart" name="timeStart" @bind-Value="_period.TimeBegin" @bind-Value:event="oninput"/>
             </div>
             <div class="form-group col-lg-2">
                 <label for="dataFinish">Конец периода</label>
-                <InputDate id="dataFinish" class="form-control" @bind-Value="@_period.TimeEnd"/>
+                @* <InputDate id="dataFinish" class="form-control" @bind-Value="@_period.TimeEnd"/> *@
+                <input type="datetime-local" class="form-control" id="dataFinish" name="timeEnd" @bind-Value="_period.TimeEnd" @bind-Value:event="oninput"/>
             </div>
             <div class="form-group col-lg-2" style="text-align: left; vertical-align: middle;">
                 <div style="height: 32px">&nbsp;</div>
                 <button id="showReport" type="button" class="btn btn-primary" @onclick="@GetData">Сформировать</button>
             </div>
         </div>
-    </EditForm>
+    @* </EditForm> *@
 </div>
 
 <div id="checkReport" style="display: @_showReport">
@@ -33,11 +35,17 @@
         <tr>
             <td>
                 <table>
+                    <div class="h3-left">Стан</div>
+                    <div class="h3-right">ССМ тест</div>
                     <tr>
-                        <th scope="col" style="vertical-align: middle; width: 100px;">Идентификатор<br/>ЕУ</th>
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Идент<br/>посада</th>
                         <th scope="col" style="vertical-align: middle; width: 120px;">Единица<br/>учета</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>бунта</th>
-                        <th scope="col" style="vertical-align: middle; width: 180px;">Время<br/>взвешивания</th>
+                        <th scope="col" class="bordered" style="vertical-align: middle; width: 180px;">Время<br/>взвешивания</th>
+                        
+                        <th scope="col" style="vertical-align: middle; width: 100px;">Идент<br/>ЕУ</th>
+                        <th scope="col" style="vertical-align: middle; width: 150px;">Идент<br/>ССМ</th>
+                        
                         <th scope="col" style="vertical-align: middle; width: 120px;">Единица<br/>учета</th>
                         <th scope="col" style="vertical-align: middle; width: 100px;">Вес<br/>бунта</th>
                         <th scope="col" style="vertical-align: middle; width: 180px;">Время<br/>взвешивания</th>
@@ -52,28 +60,135 @@
         </tr>
         <tr>
             <td>
-                <div style="height:630px; overflow:auto;">
+                <div style="height:570px; overflow:auto;">
                     <table class="table table-hover">
                         <tbody>
                         @foreach (CheckDtData item in _checkDate)
                         {
-                            if ( item.IngotMes != item.IngotDt || item.CoilWeightMes != item.CoilWeightDt )
-                                _selectRow = "lightyellow;";
+                            if (item.IngotMes != item.IngotCompare || item.CoilWeightMes != item.CoilWeightDt)
+                                _selectRow = "background-color: lightpink; font-style: italic;";
+                            else if (item.Cutting)
+                                _selectRow = "background-color: yellow;";
                             else
-                                _selectRow = "none;";
-                            
-                            <tr style="background-color: @_selectRow;">
-                                <th class="align-middle" scope="row" style="width: 100px;">@item.LandingId</th>
-                                <td class="align-middle" style="width: 120px;">@item.IngotMes</td>
-                                <td class="align-middle" style="width: 100px;">@item.CoilWeightMes</td>
-                                <td class="align-middle" style="width: 180px;">@item.DateClose.ToString("dd-MM-yyyy HH:mm:ss")</td>
-                                <td class="align-middle" style="width: 120px;">@item.IngotDt</td>
-                                <td class="align-middle" style="width: 100px;">@item.CoilWeightDt</td>
-                                <td class="align-middle" style="width: 180px;">@item.CoilDateParam.ToString("dd-MM-yyyy HH:mm:ss")</td>
-                                <td class="align-middle" style="width: 180px;">@item.TimeBegin.ToString("dd-MM-yyyy HH:mm:ss")</td>
-                                <td class="align-middle" style="width: 180px;">@item.TimeEnd.ToString("dd-MM-yyyy HH:mm:ss")</td>
-                                <td class="align-middle" style="width: 100px;">@item.BilletWeight</td>
-                                <td class="align-middle" style="width: 180px;">@item.BilletDate.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                _selectRow = "background-color: none;";
+
+                            <tr style="@_selectRow">
+                                @if (item.LandingId == 0)
+                                {
+                                    <th class="align-middle" scope="row" style="width: 100px;">&nbsp;</th>
+                                }
+                                else
+                                {
+                                    <th class="align-middle" scope="row" style="width: 100px;">@item.LandingId</th>
+                                }
+                                
+                                @if (string.IsNullOrEmpty(item.IngotMes))
+                                {
+                                    <td class="align-middle" style="width: 120px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 120px;">@item.IngotMes</td>
+                                }
+                                
+                                @if (item.CoilWeightMes == 0)
+                                {
+                                    <td class="align-middle" style="width: 100px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 100px;">@item.CoilWeightMes</td>
+                                }
+                                
+                                @if (item.DateClose == DateTime.MinValue)
+                                {
+                                    <td class="align-middle bordered" style="width: 180px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle bordered" style="width: 180px;">@item.DateClose.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                }
+                                
+                                @if (item.UnitDt == 0)
+                                {
+                                    <th class="align-middle" scope="row" style="width: 100px;">&nbsp;</th>
+                                }
+                                else
+                                {
+                                    <th class="align-middle" scope="row" style="width: 100px;">@item.UnitDt</th>
+                                }
+                                
+                                @if (string.IsNullOrEmpty(item.IngotId))
+                                {
+                                    <th class="align-middle" scope="row" style="width: 150px;">&nbsp;</th>
+                                }
+                                else
+                                {
+                                    <th class="align-middle" scope="row" style="width: 150px;">@item.IngotId</th>
+                                }
+                                
+                                @if (string.IsNullOrEmpty(item.IngotDt))
+                                {
+                                    <td class="align-middle" style="width: 120px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 120px;">@item.IngotDt</td>
+                                }
+                                
+                                @if (item.CoilWeightDt == 0)
+                                {
+                                    <td class="align-middle" style="width: 100px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 100px;">@item.CoilWeightDt</td>
+                                }
+                                
+                                @if (item.CoilDateParam == DateTime.MinValue)
+                                {
+                                    <td class="align-middle" style="width: 180px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 180px;">@item.CoilDateParam.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                }
+                                
+                                @if (item.TimeBegin == DateTime.MinValue)
+                                {
+                                    <td class="align-middle" style="width: 180px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 180px;">@item.TimeBegin.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                }
+                                
+                                @if (item.TimeEnd == DateTime.MinValue)
+                                {
+                                    <td class="align-middle" style="width: 180px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 180px;">@item.TimeEnd.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                }
+                                
+                                @if (item.BilletWeight == 0)
+                                {
+                                    <td class="align-middle" style="width: 100px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 100px;">@item.BilletWeight</td>
+                                }
+                                
+                                @if (item.BilletDate == DateTime.MinValue)
+                                {
+                                    <td class="align-middle" style="width: 180px;">&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle" style="width: 180px;">@item.BilletDate.ToString("dd-MM-yyyy HH:mm:ss")</td>
+                                }
                             </tr>
                         }
                         </tbody>
@@ -83,3 +198,4 @@
         </tr>
     </table>
 </div>
+

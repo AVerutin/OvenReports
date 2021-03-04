@@ -5,10 +5,10 @@ using OvenReports.Data;
 
 namespace OvenReports.Pages
 {
-    public class Period
+    class Period
     {
-        public DateTime TimeBegin;
-        public DateTime TimeEnd;
+        public DateTime TimeBegin { get; set; }
+        public DateTime TimeEnd { get; set; }
     }
     
     public partial class CheckDt
@@ -20,6 +20,9 @@ namespace OvenReports.Pages
         private Period _period = new Period();
         private string _selectRow = "none;";
         
+        //private string _timeBegin;
+        // private string _timeEnd;
+        
         protected override void OnInitialized()
         {
             Initialize();
@@ -30,6 +33,8 @@ namespace OvenReports.Pages
             DateTime now = DateTime.Now;
             _period.TimeBegin = DateTime.Parse($"{now.Day}-{now.Month}-{now.Year} 00:00:00");
             _period.TimeEnd = now;
+            // _timeBegin = _period.TimeBegin.ToString("G");
+            // _timeEnd = _period.TimeEnd.ToString("G");
             _checkDate = new List<CheckDtData>();
         }
         
@@ -44,9 +49,9 @@ namespace OvenReports.Pages
             _checkDate = new List<CheckDtData>();
             await Task.Delay(100);
 
-            DateTime begin = DateTime.Parse(_period.TimeBegin.ToString("dd-MM-yyyy 00:00:00.000"));
-            DateTime end = DateTime.Parse(_period.TimeEnd.ToString("dd-MM-yyyy 23:59:59.999"));
-            _checkDate = _reports.GetCheckDt(begin, end);
+            // DateTime begin = DateTime.Parse(_period.TimeBegin.ToString("dd-MM-yyyy 00:00:00.000"));
+            // DateTime end = DateTime.Parse(_period.TimeEnd.ToString("dd-MM-yyyy 23:59:59.999"));
+            _checkDate = _reports.GetCheckDt(_period.TimeBegin, _period.TimeEnd);
             _showReport = "block";
             
             _setLoading(false);

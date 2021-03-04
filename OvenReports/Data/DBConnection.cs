@@ -234,13 +234,37 @@ namespace OvenReports.Data
         /// </summary>
         /// <param name="startPeriod">Начало периода</param>
         /// <param name="finishPeriod">Конец периода</param>
+        /// <param name="order">Тип сортировки результата</param>
         /// <returns>Сводная таблица по плавкам</returns>
-        public List<MeltsList> GetMeltsListSummary(DateTime startPeriod, DateTime finishPeriod)
+        public List<MeltsList> GetMeltsListSummary(DateTime startPeriod, DateTime finishPeriod, OrderTypes order=OrderTypes.OrderByMeltNumber)
         {
             List<MeltsList> result = new List<MeltsList>();
             DataTable dataTable = new DataTable();
             string query =
-                $"select * from public.f_get_coils_period_summary('{startPeriod:O}','{finishPeriod:O}') order by c_melt, c_start_time;";
+                $"select * from public.f_get_coils_period_summary('{startPeriod:O}','{finishPeriod:O}') "; 
+            
+            // Определяем тип сортировки результата
+            switch (order)
+            {
+                case OrderTypes.OrderByMeltNumber:
+                {
+                    // По номеру плавки
+                    query += "order by c_melt, c_start_time;";
+                    break;
+                }
+                case OrderTypes.OrderByPeriodStart:
+                {
+                    // По дате начала проката
+                    query += "order by c_start_time;";
+                    break;
+                }
+                case OrderTypes.OrderByPeriodFinish:
+                {
+                    // По дате окончания проката
+                    query += "order by c_finish_time;";
+                    break;
+                }
+            }
 
             try
             {
@@ -1272,53 +1296,78 @@ namespace OvenReports.Data
                                 
                                 val = dataTable.Rows[i][1].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
-                                    val = "0";
-                                row.IngotMes = val;
+                                    val = "";
+                                row.CoilId = val;
                                 
                                 val = dataTable.Rows[i][2].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                row.IngotMes = val;
+                                
+                                val = dataTable.Rows[i][3].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = "0";
                                 row.CoilWeightMes = int.Parse(val);
                                 
-                                val = dataTable.Rows[i][3].ToString()?.Trim();
+                                val = dataTable.Rows[i][4].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = DateTime.MinValue.ToString("G");
                                 row.DateClose = DateTime.Parse(val);
                                 
-                                val = dataTable.Rows[i][4].ToString()?.Trim();
+                                val = dataTable.Rows[i][5].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
-                                    val = "0";
+                                    val = "";
                                 row.IngotDt = val;
                                 
-                                val = dataTable.Rows[i][5].ToString()?.Trim();
+                                val = dataTable.Rows[i][6].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.UnitDt = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][7].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                row.IngotId = val;
+                                
+                                val = dataTable.Rows[i][8].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = "0";
                                 row.CoilWeightDt = int.Parse(val);
                                 
-                                val = dataTable.Rows[i][6].ToString()?.Trim();
+                                val = dataTable.Rows[i][9].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = DateTime.MinValue.ToString("G");
                                 row.CoilDateParam = DateTime.Parse(val);
                                 
-                                val = dataTable.Rows[i][7].ToString()?.Trim();
+                                val = dataTable.Rows[i][10].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = DateTime.MinValue.ToString("G");
                                 row.TimeBegin = DateTime.Parse(val);
                                 
-                                val = dataTable.Rows[i][8].ToString()?.Trim();
+                                val = dataTable.Rows[i][11].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = DateTime.MinValue.ToString("G");
                                 row.TimeEnd = DateTime.Parse(val);
                                 
-                                val = dataTable.Rows[i][9].ToString()?.Trim();
+                                val = dataTable.Rows[i][12].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = "0";
                                 row.BilletWeight = int.Parse(val);
                                 
-                                val = dataTable.Rows[i][10].ToString()?.Trim();
+                                val = dataTable.Rows[i][13].ToString()?.Trim();
                                 if (string.IsNullOrEmpty(val))
                                     val = DateTime.MinValue.ToString("G");
                                 row.BilletDate = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][14].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                row.IngotCompare = val;
+                                
+                                val = dataTable.Rows[i][15].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.Cutting = int.Parse(val) == 1;
                             }
                             catch (Exception ex)
                             {
@@ -1335,6 +1384,152 @@ namespace OvenReports.Data
             {
                 _logger.Error(
                     $"Не удалось получить данные о соответствии прода и теста за период с {begin:G} по {end:G} [{ex.Message}]");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить список удаленных ЕУ за период
+        /// </summary>
+        /// <param name="begin">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns>Список удаленных ЕУ за период</returns>
+        public List<DeletedIngots> GetDeletedIngotsByPeriod(DateTime begin, DateTime end)
+        {
+            string query = _requests.GetDeletedByPeriod(begin, end);
+            List<DeletedIngots> result = new List<DeletedIngots>();
+            DataTable dataTable = new DataTable();
+
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionStringTest))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            DeletedIngots row = new DeletedIngots();
+                            try
+                            {
+                                string val = dataTable.Rows[i][0].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.NodeId = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][1].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                row.NodeCode = val;
+                                
+                                val = dataTable.Rows[i][2].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                row.MeltNumber = val;
+                                
+                                val = dataTable.Rows[i][3].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.UnitId = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][4].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                row.IngotId = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][5].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                row.TimeBegin = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][6].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                row.TimeEnd = DateTime.Parse(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать данные об удаленных ЕУ за период с {begin:G} по {end:G} [{ex.Message}]");
+                            }
+                            
+                            result.Add(row);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    $"Не удалось получить данные об удаленных ЕУ за период с {begin:G} по {end:G} [{ex.Message}]");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Получить список бурежек с группировкой по номеру плавки за период
+        /// </summary>
+        /// <param name="begin">Начало периода</param>
+        /// <param name="end">Конец периода</param>
+        /// <returns>Список бурежек за период</returns>
+        public List<RejectionsData> GetRejectionsByPeriod(DateTime begin, DateTime end)
+        {
+            List<RejectionsData> result = new List<RejectionsData>();
+            DataTable dataTable = new DataTable();
+            string query = _requests.GetRejectionsByPeriod(begin, end);
+            try
+            {
+                using (NpgsqlConnection connection = new NpgsqlConnection(_connectionStringTest))
+                {
+                    connection.Open();
+                    new NpgsqlDataAdapter(new NpgsqlCommand(query, connection)).Fill(dataTable);
+                    connection.Close();
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dataTable.Rows.Count; i++)
+                        {
+                            RejectionsData item = new RejectionsData();
+                            try
+                            {
+                                string val = dataTable.Rows[i][0].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "";
+                                item.Melt = val;
+                                
+                                val = dataTable.Rows[i][1].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = "0";
+                                item.IngotsCount = int.Parse(val);
+                                
+                                val = dataTable.Rows[i][2].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                item.TimeBegin = DateTime.Parse(val);
+                                
+                                val = dataTable.Rows[i][3].ToString()?.Trim();
+                                if (string.IsNullOrEmpty(val))
+                                    val = DateTime.MinValue.ToString("G");
+                                item.TimeEnd = DateTime.Parse(val);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(
+                                    $"Не удалось прочитать список бурежек за период с [{begin:G}] по [{end:G}] [{ex.Message}]");
+                            }
+                            
+                            result.Add(item);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    $"Не удалось получить список бурежек за период с [{begin:G}] по [{end:G}] [{ex.Message}]");
             }
 
             return result;
